@@ -1,0 +1,6 @@
+{
+  "name": "PWWE Foundation",
+  "description": "A elegant and modern website clone of the PWWE Foundation, representing women economic empowerment and cooperative support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
