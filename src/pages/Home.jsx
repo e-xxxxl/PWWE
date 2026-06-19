@@ -149,11 +149,11 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-r from-[#120A14]/95 via-[#120A14]/85 to-transparent" />
               
               {/* Subtle structural architectural canvas grid lines */}
-              <div className="absolute inset-0 opacity-[0.03] grid grid-cols-12 pointer-events-none">
+              {/* <div className="absolute inset-0 opacity-[0.03] grid grid-cols-12 pointer-events-none">
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div key={i} className="border-r border-white h-full" />
                 ))}
-              </div>
+              </div> */}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -163,7 +163,7 @@ export default function Home() {
           <div className="max-w-3xl space-y-6 md:space-y-8">
             
             {/* Slide Category Tag */}
-            <AnimatePresence mode="wait">
+            {/* <AnimatePresence mode="wait">
               <motion.span
                 key={currentSlide}
                 initial={{ opacity: 0, x: -15 }}
@@ -174,7 +174,7 @@ export default function Home() {
               >
                 {carouselSlides[currentSlide].tag}
               </motion.span>
-            </AnimatePresence>
+            </AnimatePresence> */}
             
             {/* Dynamic Slider Title */}
             <div className="min-h-[140px] md:min-h-[180px] lg:min-h-[220px]">
@@ -231,7 +231,7 @@ export default function Home() {
             <div className="flex items-center justify-between pt-12 border-t border-white/10 text-xs font-mono text-white/50">
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#CC9838] animate-pulse" />
-                <span>PWWE Active Cluster System: ANCE Building, Jericho, Ibadan, Nigeria</span>
+                <span> ANCE Building, Jericho, Ibadan, Nigeria</span>
               </div>
               
               {/* Desktop Slide Count Index Indicator */}
