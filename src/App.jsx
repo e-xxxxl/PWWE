@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./components/Layout";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Login from "./pages/Login";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout.jsx";
+import Home from "./pages/Home.jsx";
+import About from "./pages/About.jsx";
+import Contact from "./pages/Contact.jsx";
+import Auth from "./pages/Auth.jsx";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -12,8 +13,7 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="login" element={<Login />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="auth" element={<Auth />} />
         </Route>
       </Routes>
     </BrowserRouter>

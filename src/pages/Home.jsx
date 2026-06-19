@@ -1,658 +1,682 @@
-import React, { useState } from "react";
-import { useOutletContext, Link } from "react-router-dom";
-import { 
-  Users, Award, Briefcase, Sparkles, TrendingUp, Handshake, 
-  MapPin, Phone, Mail, ChevronRight, CheckCircle2, Quote, ArrowRight,
-  ShieldAlert, BookOpen, Heart, Building, Info
-} from "lucide-react";
-
-import heroimg from "../../assets/heroimg.png";
-import navlogo2 from "../../assets/navlogo2.png";
+import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "motion/react";
+import { ArrowRight, Star, Send, Building, PhoneCall, MailOpen, ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
 
 export default function Home() {
-  const { handleOpenSignUp } = useOutletContext();
-  const [imageError, setImageError] = useState(false);
-  
-  // Contact Form State
-  const [contactForm, setContactForm] = useState({
+  // Local state for the contact form
+  const [formState, setFormState] = useState({
     name: "",
     email: "",
     subject: "",
-    interest: "Cooperative Empowerment",
-    message: ""
+    interest: "PWWE Cooperative Enrollment",
+    message: "",
   });
-  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [activePathwayTab, setActivePathwayTab] = useState(0);
 
-  const handleContactSubmit = (e) => {
+  // Carousel State
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
+  const autoplayTimer = useRef(null);
+
+  const carouselSlides = [
+    {
+      image: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=1600&q=80",
+      tag: "• Cooperative Savings •",
+      title: "Economic Empowerment Through Women Entrepreneurship",
+      subtitle: "Empowering Women. Transforming Communities. We guide women in Oyo State through collective savings networks and structured micro-enterprise launching.",
+      primaryText: "Join The Cooperative",
+      primaryLink: "/auth?tab=register",
+      secondaryText: "Learn Our Story",
+      secondaryLink: "/about",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1600&q=80",
+      tag: "• Skills Development •",
+      title: "Direct Vocational & Enterprise Cohorts",
+      subtitle: "Hands-on manufacturing, textile, craft, and agro-processing cohorts designed to give women instant marketable self-sufficiency.",
+      primaryText: "Apply For Skills Entry",
+      primaryLink: "/contact?signup=skills",
+      secondaryText: "Our Methodology",
+      secondaryLink: "/about",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1600&q=80",
+      tag: "• Zero Predatory Interest •",
+      title: "Mutual Micro-Equity & Rotating Ledgers",
+      subtitle: "We replace high-interest loan cycles with community-led credit books. Members save organically and fund their sisters with zero-interest, zero-collateral.",
+      primaryText: "Access Member Portal",
+      primaryLink: "/auth",
+      secondaryText: "Get in Touch",
+      secondaryLink: "/contact",
+    }
+  ];
+
+  // Autoplay Logic
+  useEffect(() => {
+    if (!isAutoplayPaused) {
+      autoplayTimer.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
+      }, 7000);
+    }
+    return () => {
+      if (autoplayTimer.current) clearInterval(autoplayTimer.current);
+    };
+  }, [isAutoplayPaused]);
+
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
+  };
+
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length);
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setFormSubmitted(true);
-    setTimeout(() => {
-      setFormSubmitted(false);
-      setContactForm({
-        name: "",
-        email: "",
-        subject: "",
-        interest: "Cooperative Empowerment",
-        message: ""
-      });
-    }, 5000);
+    if (formState.name && formState.email && formState.message) {
+      setIsSubmitted(true);
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormState({
+          name: "",
+          email: "",
+          subject: "",
+          interest: "PWWE Cooperative Enrollment",
+          message: "",
+        });
+      }, 7000);
+    }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setContactForm(prev => ({ ...prev, [name]: value }));
-  };
+  const pathways = [
+    {
+      step: "01",
+      title: "Human Empowerment",
+      description:
+        "The foundation of growth starts with the mind and body. We equip women in Oyo State with vocational competencies, mental health workshops, and social safety nets to recover self-worth and establish immediate financial agency.",
+      bullets: ["Vocational training cohorts", "Self-reliance mentorship", "Mental well-being circles"],
+    },
+    {
+      step: "02",
+      title: "Cooperative Empowerment",
+      description:
+        "From individual agency to collective power. Women organize into local mutual savings blocks, maintaining ledgers, managing rotating credit funds, and supporting other members through secure, interest-free cooperative capitalization.",
+      bullets: ["Cooperative mutual ledger savings", "Interest-free growth pools", "Peer accountability networks"],
+    },
+    {
+      step: "03",
+      title: "Business Development",
+      description:
+        "Full economic independence. We transition cooperative projects into high-yield local enterprises with strategic incubation: brand creation, product packaging, market placements in Ibadan, and professional micro-business scaling.",
+      bullets: ["Enterprise packaging & branding", "Ibadan local trade placement", "Micro-enterprise bookkeeping"],
+    },
+  ];
+
+  const services = [
+    { title: "Skills Development", desc: "Hands-on vocational masterclasses ranging from soap creation, textile craft, to modern agro-processing." },
+    { title: "Economic Empowerment", desc: "Direct seed funding grant pipelines allocated to women to establish self-run livelihoods." },
+    { title: "Financial Literacy", desc: "Rigorous training in basic micro-ledger bookkeeping, tracking profit margins, and avoiding bad debt." },
+    { title: "Community Building", desc: "Creating safe spaces where marginalized women share business trials, child-support networks, and advice." },
+    { title: "Mentorship & Accountability", desc: "Matching new business owners with seasoned cooperative leaders to secure reliable enterprise growth." },
+    { title: "Enterprise Support", desc: "Sponsoring trade permit access, storage facilities alignment, and direct supply-chain linkages around Ibadan." },
+  ];
 
   return (
-    <div className="relative">
+    <div className="overflow-hidden bg-brand-light animate-fade-in" id="home-page-container">
       
-      {/* 1. Hero Section */}
+      {/* 1. HERO SECTION - Immersive Image Carousel & Editorial Content Layer */}
       <section 
-        id="hero-banner"
-        className="relative min-h-[90vh] flex items-center bg-gradient-to-br from-brand-900 via-brand-800 to-indigo-950 text-white pt-20 pb-24 overflow-hidden"
+        className="relative bg-[#120A14] min-h-[580px] md:min-h-[660px] lg:min-h-[720px] flex items-center overflow-hidden" 
+        id="hero-section"
+        onMouseEnter={() => setIsAutoplayPaused(true)}
+        onMouseLeave={() => setIsAutoplayPaused(false)}
       >
-        {/* Background Decorative Polka-Dots/Mesh SVG */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="dotPattern" width="30" height="30" patternUnits="userSpaceOnUse">
-                <circle cx="2" cy="2" r="1.5" fill="#FFFFFF" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dotPattern)" />
-          </svg>
+        {/* Background Image Slideshow with smooth fade & zoom */}
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.9 }}
+              className="absolute inset-0 w-full h-full bg-cover bg-center select-none"
+              style={{ backgroundImage: `url(${carouselSlides[currentSlide].image})` }}
+            >
+              {/* Overlay with subtle warm purple/black depth */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#120A14]/95 via-[#120A14]/85 to-transparent" />
+              
+              {/* Subtle structural architectural canvas grid lines */}
+              <div className="absolute inset-0 opacity-[0.03] grid grid-cols-12 pointer-events-none">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="border-r border-white h-full" />
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        {/* Ambient Purple Blur Spheres */}
-        <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-brand-500 rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none animate-pulse"></div>
-        <div className="absolute bottom-1/5 right-1/10 w-96 h-96 bg-indigo-500 rounded-full mix-blend-screen filter blur-[100px] opacity-15 pointer-events-none animate-pulse animation-delay-200"></div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        {/* Slide Content Layer */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 py-20 text-white">
+          <div className="max-w-3xl space-y-6 md:space-y-8">
             
-            {/* Hero Left Content */}
-            <div className="lg:col-span-7 space-y-8 animate-fade-in text-left">
-              <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 shadow-inner">
-                <Sparkles className="h-4 w-4 text-brand-200 animate-spin" />
-                <span className="text-xs sm:text-sm font-semibold tracking-wide text-brand-100 uppercase">
-                  Welcome to PWWE Foundation
-                </span>
+            {/* Slide Category Tag */}
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={currentSlide}
+                initial={{ opacity: 0, x: -15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 15 }}
+                transition={{ duration: 0.4 }}
+                className="inline-block font-mono text-[10px] md:text-xs tracking-widest uppercase text-[#CC9838] bg-[#CC9838]/10 border border-[#CC9838]/20 px-3.5 py-1.5 font-bold"
+              >
+                {carouselSlides[currentSlide].tag}
+              </motion.span>
+            </AnimatePresence>
+            
+            {/* Dynamic Slider Title */}
+            <div className="min-h-[140px] md:min-h-[180px] lg:min-h-[220px]">
+              <AnimatePresence mode="wait">
+                <motion.h1
+                  key={currentSlide}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.6 }}
+                  className="font-display text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]"
+                  id="carousel-slide-title"
+                >
+                  {carouselSlides[currentSlide].title}
+                </motion.h1>
+              </AnimatePresence>
+            </div>
+            
+            {/* Slide Description - WCAG High Contrast */}
+            <div className="min-h-[80px] md:min-h-[100px]">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={currentSlide}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.9 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-xs sm:text-sm md:text-base text-gray-200 font-sans font-light max-w-xl leading-relaxed"
+                >
+                  {carouselSlides[currentSlide].subtitle}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+
+            {/* Slider CTAs */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+              <Link
+                to={carouselSlides[currentSlide].primaryLink}
+                className="px-8 py-4 bg-brand-purple text-white text-center font-mono text-xs uppercase tracking-wider font-extrabold hover:bg-white hover:text-brand-dark transition-all duration-300 shadow-sm"
+                id="carousel-primary-cta"
+              >
+                {carouselSlides[currentSlide].primaryText}
+              </Link>
+              <Link
+                to={carouselSlides[currentSlide].secondaryLink}
+                className="px-8 py-4 bg-transparent text-white border border-white/30 text-center font-mono text-xs uppercase tracking-wider font-extrabold hover:border-[#CC9838] hover:text-[#CC9838] transition-all duration-300"
+                id="carousel-secondary-cta"
+              >
+                {carouselSlides[currentSlide].secondaryText}
+              </Link>
+            </div>
+
+            {/* Minor Live Indicator & Interactive controls bar */}
+            <div className="flex items-center justify-between pt-12 border-t border-white/10 text-xs font-mono text-white/50">
+              <div className="flex items-center gap-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#CC9838] animate-pulse" />
+                <span>PWWE Active Cluster System: ANCE Building, Jericho, Ibadan, Nigeria</span>
               </div>
               
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight font-display">
-                Economic Empowerment Through <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-200 via-purple-300 to-indigo-200">Women Entrepreneurship</span>
-              </h1>
-              
-              <p className="text-lg sm:text-xl text-gray-300 font-medium max-w-2xl leading-relaxed">
-                Empowering Women. Transforming Communities. We combine technical skills, business incubation, and structured financial cooperatives to build lasting prosperity.
+              {/* Desktop Slide Count Index Indicator */}
+              <div className="hidden sm:flex items-center gap-2">
+                {carouselSlides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    aria-label={`Go to slide ${index + 1}`}
+                    className={`h-1 transition-all duration-300 cursor-pointer ${
+                      currentSlide === index ? "bg-[#CC9838] w-12" : "bg-white/20 w-8 hover:bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Left/Right Absolute Arrows for manual sliding */}
+        <button
+          onClick={handlePrevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-black/40 hover:bg-[#CC9838] transition-all duration-300 border border-white/10 text-white cursor-pointer"
+          aria-label="Previous Slide Overlay"
+          id="prev-slide-btn"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          onClick={handleNextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-black/40 hover:bg-[#CC9838] transition-all duration-300 border border-white/10 text-white cursor-pointer"
+          aria-label="Next Slide Overlay"
+          id="next-slide-btn"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </section>
+
+      {/* 2. MISSION STRIP - Typographic Focus */}
+      <section className="bg-brand-light/30 border-y border-brand-purple/10" id="mission-strip">
+        <div className="max-w-7xl mx-auto py-16 px-6 text-center">
+          <span className="block font-mono text-[11px] uppercase tracking-widest text-[#CC9838] mb-3 font-bold">
+            Our Central Conviction
+          </span>
+          <h2 className="font-display text-3xl sm:text-5xl italic font-light text-brand-dark leading-tight max-w-4xl mx-auto">
+            "Empowering Women To <span className="text-brand-purple italic font-black">Rise</span>, <span className="text-brand-purple italic font-black">Thrive</span>, And <span className="text-brand-purple italic font-black">Prosper</span>."
+          </h2>
+        </div>
+      </section>
+
+      {/* 3. THREE PATHWAYS SECTION - Progressive Sequence Device */}
+      <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto" id="pathways-section">
+        <div className="text-center space-y-4 mb-16">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#CC9838] font-bold">
+            The Progressive Evolution
+          </span>
+          <h2 className="font-display text-3xl md:text-5xl font-black text-brand-dark">
+            Three Pillars of Real Ascension
+          </h2>
+          <p className="text-xs sm:text-sm font-sans text-brand-dark/70 max-w-lg mx-auto">
+            A woman does not build a business in a vacuum. She moves through the PWWE structured pipeline sequentially:
+          </p>
+        </div>
+
+        {/* The Path Connector - Horizontal on Desktop, Timeline styled */}
+        <div className="relative">
+          {/* Connecting line */}
+          <div className="absolute top-[26px] left-[15%] right-[15%] h-[2px] bg-brand-purple/15 hidden lg:block -z-10" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
+            {pathways.map((path, idx) => (
+              <div
+                key={idx}
+                className={`p-8 bg-white border transition-all duration-300 hover:border-[#CC9838]/30 ${
+                  activePathwayTab === idx
+                    ? "border-brand-purple shadow-xs"
+                    : "border-brand-purple/10"
+                }`}
+                onMouseEnter={() => setActivePathwayTab(idx)}
+              >
+                <div className="flex justify-between items-start">
+                  <span className="font-mono text-xs font-bold text-white bg-brand-purple px-3 py-1">
+                    PILLAR {path.step}
+                  </span>
+                  <span className="font-display text-4xl font-extrabold text-[#E1DBEB]">
+                    {path.step}
+                  </span>
+                </div>
+
+                <h3 className="font-display text-xl font-bold mt-6 text-brand-dark hover:text-brand-purple transition-colors">
+                  {path.title}
+                </h3>
+
+                <p className="text-xs sm:text-sm text-brand-dark/75 mt-4 leading-relaxed font-sans min-h-[100px]">
+                  {path.description}
+                </p>
+
+                {/* Sub Bullet items under each path */}
+                <ul className="mt-6 space-y-2 border-t border-brand-purple/5 pt-4">
+                  {path.bullets.map((b, bIdx) => (
+                    <li key={bIdx} className="flex items-center gap-2 text-xs font-sans text-brand-dark/60">
+                      <span className="w-1.5 h-1.5 bg-[#CC9838]" />
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-8 pt-2">
+                  <Link
+                    to="/about"
+                    className="text-xs font-mono font-bold uppercase tracking-wider text-brand-purple hover:text-[#CC9838] transition-colors flex items-center gap-1.5 group"
+                  >
+                    <span>Read pillar details</span>
+                    <ArrowRight size={13} className="transition-transform duration-200 group-hover:translate-x-1" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. WHAT WE DO SECTION - Asymmetric divider list with real image */}
+      <section className="py-24 bg-[#FDF6E8] border-y border-[#CC9838]/10" id="services-section">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+            
+            {/* Left Column - Flier image and content intro */}
+            <div className="lg:col-span-5 space-y-8 sticky top-24">
+              <span className="font-mono text-xs uppercase tracking-widest text-[#CC9838] font-bold block">
+                Sustainable Services
+              </span>
+              <h2 className="font-display text-3xl md:text-5xl font-black text-brand-dark leading-tight">
+                Our Functional Offerings in Oyo State
+              </h2>
+              <p className="text-sm text-brand-dark/75 leading-relaxed font-sans">
+                PWWE Foundation provides physical resources, strategic market connections, and local cluster supervision to sustain women long past their initial training schemes.
               </p>
 
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-3">
-                <button
-                  onClick={handleOpenSignUp}
-                  className="bg-white text-brand-900 hover:bg-brand-50 font-bold px-8 py-4 rounded-full text-base transition-all duration-300 transform hover:scale-[1.03] shadow-lg shadow-purple-950/40 text-center flex items-center justify-center space-x-2.5"
-                >
-                  <span>Join The Cooperative</span>
-                  <ArrowRight className="h-5 w-5 text-brand-800" />
-                </button>
-                <Link
-                  to="/about"
-                  className="border-2 border-white/80 hover:border-white hover:bg-white/10 text-white font-semibold px-8 py-4 rounded-full text-base transition-all duration-200 text-center"
-                >
-                  Learn More
-                </Link>
-              </div>
-            </div>
-
-            {/* Hero Right: Clean Hero Image */}
-            <div className="lg:col-span-5 w-full animate-float mt-8 lg:mt-0">
-              <div className="relative mx-auto max-w-2xl">
-                <div className="relative border border-white/20 rounded-2xl overflow-hidden shadow-lg group">
+              {/* Real flier image with double frame layout (completely non-AI default) */}
+              <div className="relative pt-4">
+                <div className="border-4 border-brand-dark p-2 text-[0px] bg-white">
                   <img
-                    src={heroimg}
-                    alt="Women entrepreneurs collaborating in a modern workspace"
-                    className="w-full aspect-[1024/683] object-cover grayscale-0 group-hover:shadow-xl transition-all duration-700"
+                    src="https://pwwefoundation.com/wp-content/uploads/2026/06/pwwefoundation-flier-1024x683.png"
+                    alt="PWWE Foundation cooperative women flyer"
                     referrerPolicy="no-referrer"
+                    className="w-full h-auto grayscale-20 hover:grayscale-0 transition-all duration-500 object-cover"
+                    id="pwwe-flier-image"
                   />
                 </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Waves SVG Bottom Divider */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <svg className="fill-white w-full" viewBox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,32L60,42.7C120,53,240,75,360,74.7C480,75,600,53,720,48C840,43,960,53,1080,58.7C1200,64,1320,64,1380,64L1440,64L1440,120L1380,120C1320,120,1200,120,1080,120C960,120,840,120,720,120C600,120,480,120,360,120C240,120,120,120,60,120L0,120Z"></path>
-          </svg>
-        </div>
-      </section>
-
-      {/* 2. Mission Strip Section */}
-      <section id="mission-strip" className="bg-brand-50 py-12 border-b border-brand-100 text-center">
-        <div className="max-w-4xl mx-auto px-4">
-          <blockquote className="text-xl sm:text-2xl italic font-semibold font-display text-brand-800 leading-relaxed">
-            "Empowering Women To Rise, Thrive, And Prosper."
-          </blockquote>
-        </div>
-      </section>
-
-      {/* 3. Three Pathways Section */}
-      <section id="three-pathways" className="py-24 bg-white relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-bold text-brand-700 tracking-widest uppercase block mb-3 font-sans">Our Framework</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight font-display">
-              Three Pathways. One Mission.
-            </h2>
-            <div className="w-16 h-1.5 bg-brand-700 mx-auto mt-4 rounded-full"></div>
-            <p className="text-gray-500 mt-5 leading-relaxed font-medium">
-              We focus our delivery across three core phases, guiding individuals through personal, group, and market scalability.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Card 1: Human Empowerment */}
-            <div className="bg-white rounded-2xl border border-brand-100 p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col justify-between group">
-              <div>
-                <div className="h-14 w-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-700 group-hover:bg-brand-700 group-hover:text-white transition-colors duration-300 mb-6 border border-brand-100">
-                  <BookOpen className="h-7 w-7" />
+                {/* Visual Label tag */}
+                <div className="absolute -bottom-4 right-4 bg-brand-purple text-white py-1 px-4 text-[10px] font-mono uppercase tracking-widest font-black">
+                  PWWE Cohort Flier • Ibadan Head Office
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 font-display">
-                  Human Empowerment & Skills
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed mb-6">
-                  Personal development focusing on leadership competence, vocabulary skill acquisition, mindset coaching, and strategic self-determination classes. We build unwavering personal capacity before business building starts.
-                </p>
-              </div>
-              <div>
-                <button 
-                  onClick={handleOpenSignUp}
-                  className="text-brand-700 hover:text-brand-800 font-bold text-sm inline-flex items-center space-x-1.5 cursor-pointer uppercase tracking-wider bg-transparent border-0 outline-none"
-                >
-                  <span>Apply Now</span>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
               </div>
             </div>
 
-            {/* Card 2: Cooperative Empowerment */}
-            <div className="bg-white rounded-2xl border border-brand-100 p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col justify-between group">
-              <div>
-                <div className="h-14 w-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-700 group-hover:bg-brand-700 group-hover:text-white transition-colors duration-300 mb-6 border border-brand-100">
-                  <TrendingUp className="h-7 w-7" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 font-display">
-                  Cooperative Empowerment
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed mb-6">
-                  Structured micro-savings networks, rotating savings & credit setups (ROSCA), asset support options, and emergency loan access that allow ladies to mobilize self-made local capital without ridiculous bank rates.
-                </p>
-              </div>
-              <div>
-                <button 
-                  onClick={handleOpenSignUp}
-                  className="text-brand-700 hover:text-brand-800 font-bold text-sm inline-flex items-center space-x-1.5 cursor-pointer uppercase tracking-wider bg-transparent border-0 outline-none"
-                >
-                  <span>Apply Now</span>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+            {/* Right Column - Beautiful item list with hairline rules */}
+            <div className="lg:col-span-7 space-y-6 lg:pl-6">
+              <span className="block font-mono text-[11px] text-brand-dark/40 uppercase tracking-widest border-b border-brand-purple/10 pb-2">
+                Core Auxiliary Support Channels
+              </span>
 
-            {/* Card 3: Business Development */}
-            <div className="bg-white rounded-2xl border border-brand-100 p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col justify-between group">
-              <div>
-                <div className="h-14 w-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-700 group-hover:bg-brand-700 group-hover:text-white transition-colors duration-300 mb-6 border border-brand-100">
-                  <Briefcase className="h-7 w-7" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 font-display">
-                  Business Development
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed mb-6">
-                  Enterprise mentoring circles, formal branding advice, business structuring templates, bookkeeping audits, and strategic partnership linkages. We help you transform informal activities into standard corporations.
-                </p>
-              </div>
-              <div>
-                <button 
-                  onClick={handleOpenSignUp}
-                  className="text-brand-700 hover:text-brand-800 font-bold text-sm inline-flex items-center space-x-1.5 cursor-pointer uppercase tracking-wider bg-transparent border-0 outline-none"
-                >
-                  <span>Apply Now</span>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* 4. What We Do Section */}
-      <section id="explore-services" className="py-24 bg-brand-50/50 border-t border-b border-brand-100 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* What We Do Left: Clean Image Panel */}
-            <div className="lg:col-span-5 flex justify-center">
-              <div className="relative group w-full max-w-2xl animate-float">
-                <div className="relative border border-brand-200 rounded-2xl overflow-hidden shadow-lg">
-                  {!imageError ? (
-                    <img 
-                      src={navlogo2} 
-                      alt="PWWE Foundation Empowerment Focus Flier" 
-                      className="w-full aspect-[1024/683] object-cover group-hover:shadow-xl transition-all duration-700"
-                      onError={() => setImageError(true)}
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-full aspect-[1024/683] bg-gradient-to-br from-brand-800 to-indigo-950 flex flex-col justify-center items-center p-8 text-center text-white">
-                      <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
-                        <Users className="h-8 w-8 text-brand-300" />
+              <div className="divide-y divide-[#CC9838]/20">
+                {services.map((svc, i) => (
+                  <div key={i} className="py-5 first:pt-0 last:pb-0 group">
+                    <div className="flex flex-col md:flex-row gap-2 md:gap-6 justify-between items-start">
+                      <div className="flex gap-3 items-start">
+                        {/* Numerical custom ledger tag helper (No circular icon!) */}
+                        <span className="font-mono text-xs text-brand-purple font-bold mt-1 min-w-[20px]">
+                          [{i + 1}]
+                        </span>
+                        <div>
+                          <h3 className="font-display text-md font-bold text-brand-dark group-hover:text-brand-purple transition-all duration-300">
+                            {svc.title}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-brand-dark/70 mt-1.5 leading-relaxed font-sans">
+                            {svc.desc}
+                          </p>
+                        </div>
                       </div>
-                      <h4 className="text-xl font-bold font-display">Empowering Communities</h4>
-                      <p className="text-xs text-brand-200 mt-2 leading-relaxed">
-                        PWWE Foundation operates cooperative initiatives bridging leadership, vocational skills, and microfinance solutions.
-                      </p>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* What We Do Right: 6-grid Service matrix */}
-            <div className="lg:col-span-7 space-y-8 text-left">
-              <div>
-                <span className="text-xs font-bold text-brand-700 tracking-widest uppercase block mb-2 font-sans">Our Service Matrix</span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight font-display">
-                  Comprehensive Development Programs
-                </h2>
-                <p className="text-gray-500 mt-4 leading-relaxed text-sm">
-                  We deploy direct service programs to help women overcome financial barriers, secure sustainable livelihoods, and build professional business networks.
-                </p>
+                  </div>
+                ))}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                
-                {/* Service 1 */}
-                <div className="flex space-x-4">
-                  <div className="h-10 w-10 rounded-lg bg-brand-50 hover:bg-brand-100 flex items-center justify-center text-brand-700 shrink-0 border border-brand-100 transition-colors duration-300">
-                    <Award className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-bold text-gray-900 font-display">Skills Development</h4>
-                    <p className="text-gray-500 text-xs mt-1 leading-relaxed">
-                      Hands-on vocational up-skilling seminars across critical artisanal, digital, and professional careers.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Service 2 */}
-                <div className="flex space-x-4">
-                  <div className="h-10 w-10 rounded-lg bg-brand-50 hover:bg-brand-100 flex items-center justify-center text-brand-700 shrink-0 border border-brand-100">
-                    <TrendingUp className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-bold text-gray-900 font-display">Economic Empowerment</h4>
-                    <p className="text-gray-500 text-xs mt-1 leading-relaxed">
-                      Targeted grants, revolving mini-capital opportunities, and asset equipment assistance schemes.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Service 3 */}
-                <div className="flex space-x-4">
-                  <div className="h-10 w-10 rounded-lg bg-brand-50 hover:bg-brand-100 flex items-center justify-center text-brand-700 shrink-0 border border-brand-100">
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-bold text-gray-900 font-display">Financial Literacy</h4>
-                    <p className="text-gray-500 text-xs mt-1 leading-relaxed">
-                      Rigorous interactive lessons covering dynamic household budget management, bookkeeping, and debt optimization.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Service 4 */}
-                <div className="flex space-x-4">
-                  <div className="h-10 w-10 rounded-lg bg-brand-50 hover:bg-brand-100 flex items-center justify-center text-brand-700 shrink-0 border border-brand-100">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-bold text-gray-900 font-display">Community Building</h4>
-                    <p className="text-gray-500 text-xs mt-1 leading-relaxed">
-                      Regular local group sessions for emotional guidance, networking circles, and joint problem resolving.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Service 5 */}
-                <div className="flex space-x-4">
-                  <div className="h-10 w-10 rounded-lg bg-brand-50 hover:bg-brand-100 flex items-center justify-center text-brand-700 shrink-0 border border-brand-100">
-                    <Handshake className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-bold text-gray-900 font-display">Mentorship & Accountability</h4>
-                    <p className="text-gray-500 text-xs mt-1 leading-relaxed">
-                      Direct pairing with top corporate sponsors and veterans to maintain operational business transparency.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Service 6 */}
-                <div className="flex space-x-4">
-                  <div className="h-10 w-10 rounded-lg bg-brand-50 hover:bg-brand-100 flex items-center justify-center text-brand-700 shrink-0 border border-brand-100">
-                    <Building className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-bold text-gray-900 font-display">Enterprise Support</h4>
-                    <p className="text-gray-500 text-xs mt-1 leading-relaxed">
-                      Simplifying registration structures, cooperative incorporation rules, and licensing templates.
-                    </p>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="pt-4">
+              <div className="pt-8 border-t border-[#CC9838]/20">
                 <Link
                   to="/about"
-                  className="inline-flex items-center space-x-1 text-sm font-bold text-brand-700 hover:text-brand-800 transition-colors uppercase tracking-wider font-sans border-0"
+                  className="px-6 py-3.5 border-2 border-brand-purple text-brand-purple font-mono text-xs uppercase tracking-widest font-bold hover:bg-brand-purple hover:text-brand-light transition-all duration-300 inline-block text-center"
                   id="more-services-link"
                 >
-                  <span>More about our services</span>
-                  <ArrowRight className="h-4 w-4" />
+                  View More Services & History
                 </Link>
               </div>
-
             </div>
 
           </div>
-
         </div>
       </section>
 
-      {/* 5. Stats / Impact Banner Section */}
-      <section id="impact-banner" className="bg-brand-900 text-white py-16 relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-900/40 via-brand-920/20 to-transparent pointer-events-none"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            
+      {/* 5. STATS/IMPACT SECTION - Pure High-Contrast block */}
+      <section className="bg-[#120A14] py-24 px-6 md:px-12 border-b border-brand-purple/20 text-white relative overflow-hidden" id="stats-section">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="max-w-lg mb-16 space-y-4">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#CC9838] font-bold">
+              // Monitored Statistics //
+            </span>
+            <h2 className="font-display text-3xl md:text-5xl font-black text-white leading-tight">
+              Evidence of Cooperative Ascension in Oyo State
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-6 pt-6 divide-y md:divide-y-0 md:divide-x divide-white/10">
             {/* Stat Item 1 */}
-            <div className="space-y-2 border-b md:border-b-0 md:border-r border-brand-800 py-6 md:py-0 last:border-0">
-              <div className="text-4xl sm:text-5xl font-extrabold tracking-tight font-display text-transparent bg-clip-text bg-gradient-to-r from-white to-brand-100">
+            <div className="space-y-3 pb-8 md:pb-0 md:px-6 first:pl-0">
+              <span className="font-mono text-xs text-white/50 block">OUR METHODOLOGY</span>
+              <div className="font-display text-5xl sm:text-7xl font-black text-brand-purple font-heavy" id="stat-pillars">
                 3+ Pillars
               </div>
-              <div className="text-xs sm:text-sm font-semibold tracking-wider text-brand-200 uppercase font-sans">
-                Human, Cooperative & Business Channels
-              </div>
+              <p className="text-xs sm:text-sm text-white/70 font-sans max-w-xs leading-relaxed">
+                Seamless progression guiding candidate women from human skills up to fully operational local business entities.
+              </p>
             </div>
 
             {/* Stat Item 2 */}
-            <div className="space-y-2 border-b md:border-b-0 md:border-r border-brand-800 py-6 md:py-0 last:border-0">
-              <div className="text-4xl sm:text-5xl font-extrabold tracking-tight font-display text-transparent bg-clip-text bg-gradient-to-r from-white to-brand-100">
+            <div className="space-y-3 pt-8 md:pt-0 md:px-6">
+              <span className="font-mono text-xs text-white/50 block">SOCIAL IMPACT REACH</span>
+              <div className="font-display text-5xl sm:text-7xl font-black text-[#CC9838] font-heavy" id="stat-women">
                 100+ Women
               </div>
-              <div className="text-xs sm:text-sm font-semibold tracking-wider text-brand-200 uppercase font-sans">
-                Successfully Empowered and Accounted
-              </div>
+              <p className="text-xs sm:text-sm text-white/70 font-sans max-w-xs leading-relaxed">
+                Marginalized women empowered with concrete skills, mutual savings support, and active trading organizations.
+              </p>
             </div>
 
             {/* Stat Item 3 */}
-            <div className="space-y-2 py-6 md:py-0">
-              <div className="text-4xl sm:text-5xl font-extrabold tracking-tight font-display text-transparent bg-clip-text bg-gradient-to-r from-white to-brand-100">
+            <div className="space-y-3 pt-8 md:pt-0 md:px-6">
+              <span className="font-mono text-xs text-white/50 block">CORPORATE PHILOSOPHY</span>
+              <div className="font-display text-5xl sm:text-7xl font-black text-[#CC9838] font-heavy" id="stat-mission">
                 1 Mission
               </div>
-              <div className="text-xs sm:text-sm font-semibold tracking-wider text-brand-200 uppercase font-sans">
-                Rise, Thrive, & Economic Prosperity
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Testimonial / Quote Section */}
-      <section id="testimonials" className="py-24 bg-gray-50/70 border-b border-gray-100 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-bold text-brand-700 tracking-widest uppercase block mb-3 font-sans">Stories of Change</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight font-display">
-              Voices of Empowered Pioneers
-            </h2>
-            <div className="w-16 h-1.5 bg-brand-700 mx-auto mt-4 rounded-full"></div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            
-            {/* Testimonial 1 */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm relative flex flex-col justify-between">
-              <div className="absolute top-6 right-6 text-brand-100 pointer-events-none">
-                <Quote className="h-12 w-12 fill-current" />
-              </div>
-              <div className="space-y-4">
-                <p className="text-gray-600 text-sm italic leading-relaxed pt-2">
-                  "Before joining the PWWE Cooperative, making strategic business planning and keeping accurate bookkeeping records was extremely complicated. The financial classes completely reshaped my strategy. Now, my retail venture is growing and stable."
-                </p>
-                <div className="h-px bg-gray-100"></div>
-              </div>
-              <div className="flex items-center space-x-3.5 pt-4">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-brand-700 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                  FM
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 font-sans">Fadekemi Mobolaji</h4>
-                  <p className="text-xs text-brand-700 uppercase font-bold tracking-wider">Agro-Commodity Retailer, Ibadan</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm relative flex flex-col justify-between">
-              <div className="absolute top-6 right-6 text-brand-100 pointer-events-none">
-                <Quote className="h-12 w-12 fill-current" />
-              </div>
-              <div className="space-y-4">
-                <p className="text-gray-600 text-sm italic leading-relaxed pt-2">
-                  "PWWE provided more than resources; they gave a robust support system. The weekly accountability group helped me establish consistent savings. I purchased my modern business machinery through the cooperative asset acquisition channel!"
-                </p>
-                <div className="h-px bg-gray-100"></div>
-              </div>
-              <div className="flex items-center space-x-3.5 pt-4">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-brand-700 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                  BO
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 font-sans">Bisi Olanrewaju</h4>
-                  <p className="text-xs text-brand-700 uppercase font-bold tracking-wider">Fashion Designer & Boutique owner</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* 7. Contact CTA & Inquiry Section */}
-      <section id="contact-cta-section" className="py-24 bg-white relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white border border-brand-100 rounded-3xl overflow-hidden shadow-xl grid grid-cols-1 lg:grid-cols-12">
-            
-            {/* Contact CTA Left: Coords */}
-            <div className="lg:col-span-5 bg-gradient-to-br from-brand-900 via-brand-800 to-brand-950 text-white p-8 sm:p-12 text-left relative flex flex-col justify-between space-y-12">
-              <div className="absolute inset-0 opacity-5 pointer-events-none">
-                <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="100%" height="100%" fill="none" />
-                  <circle cx="10%" cy="10%" r="20%" stroke="#FFFFFF" fill="none" strokeWidth="2" />
-                </svg>
-              </div>
-
-              <div className="space-y-4">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-brand-300">Operational Office Context</span>
-                <h3 className="text-2xl sm:text-3xl font-bold font-display leading-tight">
-                  Reach Out to PWWE Headquarters
-                </h3>
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  Together we can empower more women and transform more communities. Send your queries or schedule a visit to speak with an intake manager.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                
-                {/* Coordinate 1 */}
-                <div className="flex items-start space-x-3.5">
-                  <MapPin className="h-5.5 w-5.5 text-brand-300 shrink-0 mt-0.5" />
-                  <div>
-                    <h5 className="text-xs font-bold text-brand-200 uppercase tracking-widest leading-none">Main Address</h5>
-                    <p className="text-sm mt-1 text-gray-100">
-                      2nd Floor, ANCE Building, Jericho, Ibadan, Oyo State, Nigeria
-                    </p>
-                  </div>
-                </div>
-
-                {/* Coordinate 2 */}
-                <div className="flex items-start space-x-3.5">
-                  <Phone className="h-5.5 w-5.5 text-brand-300 shrink-0 mt-0.5" />
-                  <div>
-                    <h5 className="text-xs font-bold text-brand-200 uppercase tracking-widest leading-none">Phone Contact</h5>
-                    <a href="tel:+2349031463004" className="text-sm mt-1 text-gray-100 block hover:text-brand-300 transition-colors">
-                      +234 903 146 3004
-                    </a>
-                  </div>
-                </div>
-
-                {/* Coordinate 3 */}
-                <div className="flex items-start space-x-3.5">
-                  <Mail className="h-5.5 w-5.5 text-brand-300 shrink-0 mt-0.5" />
-                  <div>
-                    <h5 className="text-xs font-bold text-brand-200 uppercase tracking-widest leading-none">Email Support</h5>
-                    <a href="mailto:contact@pwwefoundation.com" className="text-sm mt-1 text-gray-100 block hover:text-brand-300 transition-colors">
-                      contact@pwwefoundation.com
-                    </a>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="pt-4 border-t border-brand-800 text-[11px] text-gray-400 font-sans">
-                PWWE Foundation Registration ID: Oyo State Cooperatives Framework Registered Unit.
-              </div>
-            </div>
-
-            {/* Contact CTA Right: Inline Form */}
-            <div className="lg:col-span-7 p-8 sm:p-12 text-left bg-gray-50/50">
-              <h3 className="text-xl sm:text-2xl font-bold font-display text-gray-900 mb-2">
-                Send an Inquiry
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-500 mb-6 font-medium">
-                Complete this formal contact query. Our intake review queue is processed daily.
+              <p className="text-xs sm:text-sm text-white/70 font-sans max-w-xs leading-relaxed">
+                Total local economic self-reliance. Eliminating cycles of micro-lending debt and building real structural assets.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              {formSubmitted ? (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center animate-fade-in flex flex-col items-center justify-center min-h-[300px]">
-                  <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-3" />
-                  <h4 className="text-lg font-bold text-emerald-900">Message Sent Successfully!</h4>
-                  <p className="text-xs text-emerald-700/80 mt-1 max-w-sm">
-                    Thank you. Your message has been routed to our secretarial desk. An associate will respond within 24 working hours.
-                  </p>
+      {/* 6. QUOTE/TESTIMONIAL SECTION - Understated but Powerful */}
+      <section className="py-24 px-6 bg-brand-light" id="testimonial-section">
+        <div className="max-w-4xl mx-auto border-l-4 border-brand-purple pl-6 md:pl-10 space-y-6">
+          <div className="flex gap-1.5 text-brand-purple">
+            <Star size={16} fill="currentColor" />
+            <Star size={16} fill="currentColor" />
+            <Star size={16} fill="currentColor" />
+            <Star size={16} fill="currentColor" />
+            <Star size={16} fill="currentColor" />
+          </div>
+
+          <p className="font-display text-lg sm:text-2xl text-brand-dark/85 leading-relaxed italic block">
+            "Before I joined the PWWE cooperative, running my enterprise in Ibadan was a lonely struggle. With the structural ledger savings and business accountability groups, I've expanded my retail market, secured interest-free cooperative loans, and now support four other women in my district."
+          </p>
+
+          <div>
+            <span className="block font-sans font-bold text-sm text-brand-dark">
+              Alhaja R. Adesina
+            </span>
+            <span className="block font-mono text-[10px] text-[#CC9838] uppercase tracking-wider font-semibold">
+              Textile Entrepreneur & PWWE Ibadan West Cluster Leader
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. CONTACT CTA SECTION - Together we can: Form and Details */}
+      <section className="py-24 bg-brand-purple-light/30 border-t border-[#CC9838]/20" id="contact-cta-section">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col gap-12 lg:grid lg:grid-cols-12 lg:gap-16 items-start">
+          
+          {/* Left Box: Text Content + Coordinates */}
+          <div className="lg:col-span-4 space-y-8">
+            <span className="font-mono text-xs uppercase tracking-widest text-brand-purple font-bold block">
+              Take Collective Action
+            </span>
+            <h2 className="font-display text-3xl md:text-5xl font-black text-brand-dark leading-tight">
+              Together, we can empower more women and transform more communities
+            </h2>
+            <p className="text-sm text-brand-dark/70 font-sans leading-relaxed font-light">
+              Whether you want to apply for cooperative savings membership, join our next vocation skill cohort in Ibadan, or partner with us as an institutional sponsor, fill out this inquiry ledger.
+            </p>
+
+            {/* Coordinator Elements */}
+            <div className="space-y-6 pt-6 border-t border-brand-purple/10">
+              <div className="flex gap-4 items-start">
+                <div className="p-2.5 bg-white border border-brand-purple/10 text-brand-purple shadow-xs shrink-0">
+                  <Building size={16} />
                 </div>
-              ) : (
-                <form onSubmit={handleContactSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="name" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Your Name</label>
-                      <input
-                        type="text"
-                        name="name"
-                        id="name"
-                        required
-                        value={contactForm.name}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Mary Daniel"
-                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Email Address</label>
-                      <input
-                        type="email"
-                        name="email"
-                        id="email"
-                        required
-                        value={contactForm.email}
-                        onChange={handleInputChange}
-                        placeholder="yourname@example.com"
-                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <span className="block text-[10px] font-mono uppercase text-brand-dark/50 tracking-widest">physical location</span>
+                  <span className="block text-xs font-sans text-brand-dark font-medium leading-relaxed">
+                    2nd Floor, ANCE Building, Jericho, Ibadan, Oyo State, Nigeria
+                  </span>
+                </div>
+              </div>
 
-                  <div>
-                    <label htmlFor="subject" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Subject</label>
+              <div className="flex gap-4 items-start">
+                <div className="p-2.5 bg-white border border-brand-purple/10 text-brand-purple shadow-xs shrink-0">
+                  <PhoneCall size={16} />
+                </div>
+                <div>
+                  <span className="block text-[10px] font-mono uppercase text-brand-dark/50 tracking-widest">quick contact desk</span>
+                  <a href="tel:+2349031463004" className="block text-xs font-sans text-brand-dark font-semibold hover:text-brand-purple transition-colors">
+                    (+234) 903 146 3004
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Box: The Inquiry Form */}
+          <div className="lg:col-span-8 bg-white p-8 md:p-10 border border-brand-purple/10 shadow-xs relative">
+            <span className="absolute top-0 right-0 bg-[#CC9838] text-white text-[9px] font-mono uppercase tracking-widest font-black py-12 px-2 [writing-mode:vertical-lr] hidden sm:block">
+              PWWE Entry Book
+            </span>
+
+            <h4 className="font-display text-xl font-bold text-brand-dark mb-2">
+              Submit Interest Ledger
+            </h4>
+            <p className="text-xs text-brand-dark/60 font-sans mb-8">
+              Your credentials are filed securely in our Ibadan register directory. Fields tagged with * are required.
+            </p>
+
+            {isSubmitted ? (
+              <div className="bg-[#FAF3FA] border border-brand-purple text-brand-dark p-6 space-y-3 animate-fade-in">
+                <div className="flex items-center gap-2 text-brand-purple">
+                  <CheckCircle2 size={20} />
+                  <span className="font-display text-lg font-bold">Eku Abo! Entry Logged.</span>
+                </div>
+                <p className="text-xs leading-relaxed font-sans text-brand-dark/80">
+                  Hello, <strong>{formState.name}</strong>. Your message regarding <strong>{formState.interest}</strong> has been received by the PWWE administrative registrar at our Jericho, Ibadan office. An executive lead of Oyo State clusters will respond via <strong>{formState.email}</strong> within 1-2 business days.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6" id="home-interest-form">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Name */}
+                  <div className="space-y-2">
+                    <label htmlFor="form-name" className="block font-mono text-[10px] uppercase text-brand-dark/70 tracking-widest font-bold">
+                      Full Name *
+                    </label>
                     <input
                       type="text"
-                      name="subject"
-                      id="subject"
+                      id="form-name"
+                      value={formState.name}
+                      onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                       required
-                      value={contactForm.subject}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Partnership Opportunity / Cooperative savings info"
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                      placeholder="e.g., Alaba Adesina"
+                      className="w-full bg-brand-light border border-brand-purple/15 focus:border-[#CC9838] focus:outline-none px-4 py-3 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200"
                     />
                   </div>
 
-                  <div>
-                    <label htmlFor="interest" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">I am interested in...</label>
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <label htmlFor="form-email" className="block font-mono text-[10px] uppercase text-brand-dark/70 tracking-widest font-bold">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      id="form-email"
+                      value={formState.email}
+                      onChange={(e) => setFormState({ ...formState, email: e.target.value })}
+                      required
+                      placeholder="e.g., alaba@domain.com"
+                      className="w-full bg-brand-light border border-brand-purple/15 focus:border-[#CC9838] focus:outline-none px-4 py-3 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Subject */}
+                  <div className="space-y-2">
+                    <label htmlFor="form-subject" className="block font-mono text-[10px] uppercase text-brand-dark/70 tracking-widest font-bold">
+                      Subject Line
+                    </label>
+                    <input
+                      type="text"
+                      id="form-subject"
+                      value={formState.subject}
+                      onChange={(e) => setFormState({ ...formState, subject: e.target.value })}
+                      placeholder="e.g., Cooperative Inquiry"
+                      className="w-full bg-brand-light border border-brand-purple/15 focus:border-[#CC9838] focus:outline-none px-4 py-3 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200"
+                    />
+                  </div>
+
+                  {/* Interest Dropdown */}
+                  <div className="space-y-2">
+                    <label htmlFor="form-interest" className="block font-mono text-[10px] uppercase text-brand-dark/70 tracking-widest font-bold">
+                      I am interested in...
+                    </label>
                     <select
-                      name="interest"
-                      id="interest"
-                      value={contactForm.interest}
-                      onChange={handleInputChange}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                      id="form-interest"
+                      value={formState.interest}
+                      onChange={(e) => setFormState({ ...formState, interest: e.target.value })}
+                      className="w-full bg-brand-light border border-brand-purple/15 focus:border-[#CC9838] focus:outline-none px-4 py-3 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200"
                     >
-                      <option value="Human Empowerment">Human Empowerment Circle (Skills)</option>
-                      <option value="Cooperative Empowerment">Cooperative Savings & Microfinance Pool</option>
-                      <option value="Business Development">Business Incubation & Mentor Network</option>
-                      <option value="General Sponsorship">General Sponsorship / Partnership Interest</option>
+                      <option value="PWWE Cooperative Enrollment">PWWE Cooperative Enrollment</option>
+                      <option value="Skills Cohort Entry">Skills Cohort Entry</option>
+                      <option value="Volunteering as a Mentor">Volunteering as a Mentor</option>
+                      <option value="Donation Support">Donation Support</option>
+                      <option value="General Inquiry">General Inquiry</option>
                     </select>
                   </div>
+                </div>
 
-                  <div>
-                    <label htmlFor="message" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Message Text</label>
-                    <textarea
-                      name="message"
-                      id="message"
-                      required
-                      rows={4}
-                      value={contactForm.message}
-                      onChange={handleInputChange}
-                      placeholder="Write your detailed questions or description here..."
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                    ></textarea>
-                  </div>
+                {/* Message */}
+                <div className="space-y-2">
+                  <label htmlFor="form-message" className="block font-mono text-[10px] uppercase text-brand-dark/70 tracking-widest font-bold">
+                    Message / Ledger Notes *
+                  </label>
+                  <textarea
+                    id="form-message"
+                    rows={4}
+                    value={formState.message}
+                    onChange={(e) => setFormState({ ...formState, message: e.target.value })}
+                    required
+                    placeholder="Specify your enterprise type or skill cohort of interest..."
+                    className="w-full bg-brand-light border border-brand-purple/15 focus:border-[#CC9838] focus:outline-none px-4 py-3 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200 resize-none"
+                  />
+                </div>
 
-                  <div className="pt-2">
-                    <button
-                      type="submit"
-                      id="contact-submit-btn"
-                      className="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold py-3.5 px-6 rounded-full shadow-md hover:shadow-lg transition-all text-sm uppercase tracking-wider"
-                    >
-                      Send Message
-                    </button>
-                  </div>
-
-                </form>
-              )}
-            </div>
-
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="w-full py-4 bg-brand-purple text-brand-light font-mono text-xs uppercase tracking-widest font-black border border-brand-purple hover:bg-transparent hover:text-brand-purple transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  id="form-submit-btn"
+                >
+                  <span>Submit to Ibadan Registry</span>
+                  <Send size={13} />
+                </button>
+              </form>
+            )}
           </div>
+
         </div>
       </section>
 

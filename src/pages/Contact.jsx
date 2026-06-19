@@ -1,344 +1,394 @@
-import React, { useState } from "react";
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, ShieldCheck, HelpCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { motion } from "motion/react";
+import { MapPin, Phone, Mail, Clock, Send, ShieldCheck, AlertCircle, Building, CheckCircle2 } from "lucide-react";
 
 export default function Contact() {
-  const [form, setForm] = useState({
+  const [searchParams] = useSearchParams();
+  const signupParam = searchParams.get("signup");
+
+  // Local state for the contact form
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
     subject: "",
-    interest: "Cooperative Empowerment",
-    message: ""
+    interest: "PWWE Cooperative Enrollment",
+    message: "",
   });
   
-  const [submitted, setSubmitted] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [formErrors, setFormErrors] = useState(null);
+
+  // Auto-select option if query parameter is present (e.g. ?signup=coop)
+  useEffect(() => {
+    if (signupParam === "coop") {
+      setFormData((prev) => ({
+        ...prev,
+        interest: "PWWE Cooperative Enrollment",
+        subject: "Cooperative Savings Cluster Signup",
+      }));
+    }
+  }, [signupParam]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        interest: "Cooperative Empowerment",
-        message: ""
-      });
-    }, 5000);
-  };
+    setFormErrors(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    // Basic Validation
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setFormErrors("Please complete all required fields (*).");
+      return;
+    }
+
+    // Success response
+    setIsSuccess(true);
+    window.scrollTo({ top: 100, behavior: "smooth" });
   };
 
   return (
-    <div className="relative">
-      
-      {/* 1. Contact Hero */}
-      <section 
-        id="contact-hero"
-        className="relative bg-gradient-to-br from-brand-900 via-brand-800 to-indigo-950 text-white py-20 text-center overflow-hidden"
-      >
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="dotPatternContact" width="30" height="30" patternUnits="userSpaceOnUse">
-                <circle cx="2" cy="2" r="1.5" fill="#FFFFFF" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dotPatternContact)" />
-          </svg>
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 shadow-inner mb-4">
-            <span className="text-[10px] sm:text-xs font-bold tracking-widest text-brand-100 uppercase">
-              How Can We Help You?
-            </span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-display leading-tight tracking-tight mb-3">
-            Contact Us
+    <div className="bg-brand-light min-h-screen pb-24 font-sans animate-fade-in" id="contact-page">
+      {/* Editorial Header */}
+      <section className="pt-16 pb-20 px-6 md:px-12 max-w-7xl mx-auto border-b border-brand-purple/10">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-4 max-w-3xl"
+        >
+          <span className="font-mono text-xs uppercase tracking-widest text-[#CC9838] font-bold block">
+            // Administrative Desk
+          </span>
+          <h1 className="font-display text-4xl md:text-7xl font-extrabold text-brand-dark leading-tight">
+            Contact Our Registrar
           </h1>
-          <p className="text-sm sm:text-base text-gray-300 max-w-xl mx-auto leading-relaxed font-sans">
-            Have questions about micro-saving packages, corporate support incubation, or partnerships? Reach our central support desks.
+          <p className="text-sm sm:text-lg text-brand-dark/70 font-sans max-w-xl leading-relaxed">
+            Have questions about group eligibility, cooperative book registrations, or donor partnerships? Drop us a line of interest below.
           </p>
-        </div>
-
-        {/* Small wave bottom */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <svg className="fill-white w-full h-10 translate-y-1" viewBox="0 0 1440 40" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,32L1440,0L1440,40L0,40Z"></path>
-          </svg>
-        </div>
+        </motion.div>
       </section>
 
-      {/* 2. Three Info Cards: Address / Phone / Email */}
-      <section id="contact-info-cards" className="py-16 bg-white relative z-10 -mt-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Card 1: Address */}
-            <div className="bg-white rounded-3xl p-8 border border-brand-100 shadow-sm hover:shadow-md transition-shadow flex flex-col items-start text-left group">
-              <div className="h-12 w-12 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center border border-brand-100 group-hover:bg-brand-700 group-hover:text-white transition-colors duration-300 mb-6">
-                <MapPin className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 font-display">Office Address</h3>
-              <p className="text-xs font-semibold text-brand-700 uppercase tracking-wider mt-1 mb-2">Ibadan Secretariat</p>
-              <p className="text-gray-500 text-sm leading-relaxed font-sans">
-                2nd Floor, ANCE Building, Jericho, Ibadan, Oyo State, Nigeria.
+      {/* Main Container: Grid layout */}
+      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          
+          {/* Left Column - Detailed Contact Info & Styled Map */}
+          <div className="lg:col-span-5 space-y-12">
+            <div>
+              <span className="font-mono text-[10px] uppercase text-[#CC9838] tracking-widest block mb-4 font-bold">
+                Ibadan Head Office Coordinates
+              </span>
+              <h2 className="font-display text-3xl font-black text-brand-dark leading-tight">
+                PWWE HQ, Jericho, Ibadan
+              </h2>
+              <p className="text-xs text-brand-dark/60 font-sans mt-2">
+                Ground administration and skill cluster audits occur weekly at the historical ANCE building in Oyo State.
               </p>
             </div>
 
-            {/* Card 2: Phone */}
-            <div className="bg-white rounded-3xl p-8 border border-brand-100 shadow-sm hover:shadow-md transition-shadow flex flex-col items-start text-left group">
-              <div className="h-12 w-12 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center border border-brand-100 group-hover:bg-brand-700 group-hover:text-white transition-colors duration-300 mb-6">
-                <Phone className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 font-display">Call Helpline</h3>
-              <p className="text-xs font-semibold text-brand-700 uppercase tracking-wider mt-1 mb-2">Consultation Support</p>
-              <p className="text-gray-500 text-sm leading-relaxed font-sans">
-                Dial our main operational line for instant general support desk routing.
-              </p>
-              <a href="tel:+2349031463004" className="text-brand-700 font-bold block mt-3 hover:underline">
-                (+234) 903 146 3004
-              </a>
-            </div>
-
-            {/* Card 3: Email */}
-            <div className="bg-white rounded-3xl p-8 border border-brand-100 shadow-sm hover:shadow-md transition-shadow flex flex-col items-start text-left group">
-              <div className="h-12 w-12 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center border border-brand-100 group-hover:bg-brand-700 group-hover:text-white transition-colors duration-300 mb-6">
-                <Mail className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 font-display">Email Support</h3>
-              <p className="text-xs font-semibold text-brand-700 uppercase tracking-wider mt-1 mb-2">Written Queries</p>
-              <p className="text-gray-500 text-sm leading-relaxed font-sans">
-                Send us partnership details, donation ideas, or savings program inquiries.
-              </p>
-              <a href="mailto:contact@pwwefoundation.com" className="text-brand-700 font-bold block mt-3 hover:underline">
-                contact@pwwefoundation.com
-              </a>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Main Form & Side Info (Hours, Map placeholder) */}
-      <section id="contact-form-section" className="pb-24 bg-gray-50/50 border-t border-gray-100 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start text-left">
-            
-            {/* Left side: Form */}
-            <div className="lg:col-span-7 bg-white p-8 sm:p-12 rounded-3xl border border-brand-100/80 shadow-sm">
-              <div className="mb-8">
-                <span className="text-[10px] font-bold text-brand-700 uppercase tracking-widest block mb-2 font-sans font-semibold">Send formal request</span>
-                <h2 className="text-2xl sm:text-3xl font-bold font-display text-gray-900">
-                  Operational Inquiry Form
-                </h2>
-                <p className="text-gray-500 text-sm mt-1">
-                  Please fill out the details accurately. Our team responds within 24 working hours.
-                </p>
+            {/* Custom Styled Geographic Map Placeholder (Architectural layout, No default empty colored box!) */}
+            <div className="border border-[#CC9838]/20 p-6 bg-white relative overflow-hidden group shadow-xs">
+              {/* Grid backdrop lines */}
+              <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-3 pointer-events-none">
+                {Array.from({ length: 36 }).map((_, i) => (
+                  <div key={i} className="border-[0.5px] border-brand-purple" />
+                ))}
               </div>
 
-              {submitted ? (
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-8 text-center animate-fade-in flex flex-col items-center justify-center min-h-[350px]">
-                  <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-4" />
-                  <h3 className="text-xl font-bold text-gray-900">Thank you! Message Sent.</h3>
-                  <p className="text-sm text-gray-500 mt-2 max-w-sm">
-                    Your transmission has been logged successfully. The desk officer will contact you shortly.
+              <div className="relative space-y-6">
+                <div className="flex justify-between items-center text-[10px] font-mono text-brand-dark/50">
+                  <span>ANCE GRID PLOT</span>
+                  <span className="text-[#CC9838] font-bold">7.4042° N, 3.8793° E</span>
+                </div>
+
+                {/* Simulated Street Layout */}
+                <div className="h-44 bg-brand-light relative border border-brand-purple/5 p-4 flex flex-col justify-between">
+                  <div className="absolute w-[3px] bg-brand-purple/5 h-full left-1/3 top-0" />
+                  <div className="absolute h-[3px] bg-brand-purple/5 w-full left-0 top-1/2" />
+                  <div className="absolute w-[2px] bg-brand-accent/10 h-full right-1/4 top-0 rotate-12" />
+
+                  {/* Marker Node 1: ANCE */}
+                  <div className="absolute left-1/3 top-1/2 -translate-x-[6px] -translate-y-[6px] z-10">
+                    <span className="absolute w-4 h-4 bg-brand-purple/20 rounded-full animate-ping" />
+                    <span className="block w-3 h-3 bg-brand-purple border-2 border-white rounded-full" />
+                  </div>
+
+                  <span className="absolute left-[38%] top-[54%] font-mono text-[9px] uppercase tracking-wider text-brand-dark font-black bg-white px-1 shadow-xs border border-brand-purple/10">
+                    ANCE Building (2nd Floor)
+                  </span>
+
+                  <div className="text-[8px] font-mono text-brand-dark/40 flex justify-between">
+                    <span>↖ TO JERICHO RESERVOIR</span>
+                    <span>↗ ONIREKE RESIDENCY</span>
+                  </div>
+
+                  <div className="text-[8px] font-mono text-brand-dark/40 flex justify-between self-end">
+                    <span>↙ JERICHO ROAD</span>
+                    <span>↘ TO ALALUBOSA OYO</span>
+                  </div>
+                </div>
+
+                <div className="text-xs space-y-1 text-brand-dark/70 font-sans leading-relaxed pt-2">
+                  <span className="block font-bold text-brand-dark text-[11px] uppercase tracking-wider font-mono">
+                    Navigation Helper:
+                  </span>
+                  <p>
+                    Ensure your driver exits towards the Jericho GRA residential boundary. The historical ANCE building sits adjacent to the standard commercial high streets, with clear parking entries.
                   </p>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label htmlFor="contact-page-name" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Full Name</label>
-                      <input
-                        type="text"
-                        name="name"
-                        id="contact-page-name"
-                        required
-                        value={form.name}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Sandra Kolawole"
-                        className="w-full bg-gray-55/30 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="contact-page-email" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Email Address</label>
-                      <input
-                        type="email"
-                        name="email"
-                        id="contact-page-email"
-                        required
-                        value={form.email}
-                        onChange={handleInputChange}
-                        placeholder="name@example.com"
-                        className="w-full bg-gray-55/30 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                  </div>
+              </div>
+            </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label htmlFor="contact-page-phone" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Phone Number</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        id="contact-page-phone"
-                        required
-                        value={form.phone}
-                        onChange={handleInputChange}
-                        placeholder="e.g. (+234) 803 125 4567"
-                        className="w-full bg-gray-55/30 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="contact-page-interest" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Program of Interest</label>
-                      <select
-                        name="interest"
-                        id="contact-page-interest"
-                        value={form.interest}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-55/30 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                      >
-                        <option value="Human Empowerment">Human Empowerment Circle</option>
-                        <option value="Cooperative Empowerment">Cooperative Savings & Lending</option>
-                        <option value="Business Development">Business Incubation & Scaling</option>
-                        <option value="Volunteering">Volunteering Opportunity</option>
-                        <option value="Philanthropy Sponsorship">Philanthropic Sponsorships</option>
-                      </select>
-                    </div>
-                  </div>
+            {/* Direct Contact Cards */}
+            <div className="space-y-6">
+              {/* Address */}
+              <div className="flex gap-4 items-start pb-6 border-b border-brand-purple/15">
+                <div className="p-3 bg-brand-purple-light text-brand-purple border border-brand-purple/10">
+                  <Building size={18} />
+                </div>
+                <div className="space-y-1">
+                  <span className="font-mono text-[10px] uppercase text-brand-dark/40 tracking-widest block font-bold">
+                    Physical Registry Address
+                  </span>
+                  <p className="text-sm text-brand-dark font-sans leading-relaxed">
+                    2nd Floor, ANCE Building, Jericho, Ibadan, Oyo State, Nigeria
+                  </p>
+                </div>
+              </div>
 
-                  <div>
-                    <label htmlFor="contact-page-subject" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Inquiry Subject</label>
+              {/* Phone Channels */}
+              <div className="flex gap-4 items-start pb-6 border-b border-brand-purple/15">
+                <div className="p-3 bg-brand-accent-light text-brand-accent border border-brand-accent/10">
+                  <Phone size={18} />
+                </div>
+                <div className="space-y-1">
+                  <span className="font-mono text-[10px] uppercase text-brand-dark/40 tracking-widest block font-bold">
+                    Inquiry Telephony Desk
+                  </span>
+                  <a
+                    href="tel:+2349031463004"
+                    className="text-sm text-brand-dark font-semibold hover:text-brand-purple block transition-colors font-sans"
+                  >
+                    (+234) 903 146 3004
+                  </a>
+                  <span className="text-[10px] text-brand-dark/50 block font-mono">
+                    Hours: Mon–Fri, 9am–5pm (GMT+1)
+                  </span>
+                </div>
+              </div>
+
+              {/* Email Addresses */}
+              <div className="flex gap-4 items-start">
+                <div className="p-3 bg-[#FAF5EC] text-[#CC9838] border border-[#CC9838]/15">
+                  <Mail size={18} />
+                </div>
+                <div className="space-y-1">
+                  <span className="font-mono text-[10px] uppercase text-brand-dark/40 tracking-widest block font-bold">
+                    Electronic Correspondence
+                  </span>
+                  <a
+                    href="mailto:contact@pwwefoundation.com"
+                    className="text-sm text-brand-dark font-semibold hover:text-brand-purple block transition-colors font-sans"
+                  >
+                    contact@pwwefoundation.com
+                  </a>
+                  <span className="text-[10px] text-brand-dark/50 block font-mono">
+                    Average response: 24-48 Business hours
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right Column - Prominent, contact form */}
+          <div className="lg:col-span-7 bg-white p-8 md:p-12 border border-brand-purple/15 shadow-sm relative">
+            <div className="absolute top-0 right-0 bg-[#CC9838] text-white text-[9px] font-mono uppercase tracking-widest font-black py-4 px-6">
+              PWWE REGISTER 2026
+            </div>
+
+            <h2 className="font-display text-2xl font-bold text-brand-dark mb-2">
+              The Administrative Ledger Form
+            </h2>
+            <p className="text-xs text-brand-dark/60 font-sans mb-10 leading-relaxed max-w-lg">
+              Kindly record your specific circumstances or proposal. Your submission is directed straight to our executive director desk in Oyo State.
+            </p>
+
+            {isSuccess ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-8 bg-brand-accent-light border border-brand-accent text-brand-dark space-y-4"
+              >
+                <div className="flex items-center gap-2 text-[#CC9838]">
+                  <CheckCircle2 size={24} />
+                  <span className="font-display text-xl font-bold">Record Logged of {formData.name}</span>
+                </div>
+                
+                <p className="text-xs sm:text-sm leading-relaxed font-sans text-brand-dark/85">
+                  Thank you very much. An administrator has successfully cached your request regarding <strong>{formData.interest}</strong>.
+                </p>
+
+                <div className="p-4 bg-white/70 border border-[#CC9838]/20 text-xs font-mono space-y-2 text-brand-dark/75">
+                  <div className="flex justify-between">
+                    <span>LEDGER ID:</span>
+                    <span>PWWE-2026-L{Math.floor(Math.random() * 8999) + 1000}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>EMAIL LINKED:</span>
+                    <span>{formData.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>OFFICE:</span>
+                    <span>Jericho HQ Cluster, Ibadan</span>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={() => {
+                      setIsSuccess(false);
+                      setFormData({
+                        name: "",
+                        email: "",
+                        subject: "",
+                        interest: "PWWE Cooperative Enrollment",
+                        message: "",
+                      });
+                    }}
+                    className="px-6 py-2.5 bg-brand-purple text-white font-mono text-[11px] uppercase tracking-wider font-bold transition-colors cursor-pointer"
+                  >
+                    Log another message
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6" id="contact-full-form">
+                
+                {formErrors && (
+                  <div className="p-3 bg-red-50 border border-red-300 text-red-700 text-xs flex items-center gap-2 font-mono">
+                    <AlertCircle size={14} />
+                    <span>{formErrors}</span>
+                  </div>
+                )}
+
+                {/* Name */}
+                <div className="space-y-2">
+                  <label htmlFor="contact-name" className="block font-mono text-[10px] uppercase text-brand-dark/75 tracking-widest font-bold">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="contact-name"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g., Mrs. Adesina Alabi"
+                    className="w-full bg-brand-light border border-brand-purple/10 focus:border-[#CC9838] focus:outline-none px-4 py-3.5 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <label htmlFor="contact-email" className="block font-mono text-[10px] uppercase text-brand-dark/75 tracking-widest font-bold">
+                      Email Address *
+                    </label>
                     <input
-                      type="text"
-                      name="subject"
-                      id="contact-page-subject"
+                      type="email"
+                      id="contact-email"
                       required
-                      value={form.subject}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Schedule a cooperative savings introductory seminar"
-                      className="w-full bg-gray-55/30 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="e.g., name@domain.com"
+                      className="w-full bg-brand-light border border-brand-purple/10 focus:border-[#CC9838] focus:outline-none px-4 py-3.5 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200"
                     />
                   </div>
 
-                  <div>
-                    <label htmlFor="contact-page-message" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Detailed Message</label>
-                    <textarea
-                      name="message"
-                      id="contact-page-message"
-                      required
-                      rows={5}
-                      value={form.message}
-                      onChange={handleInputChange}
-                      placeholder="State your objectives or inquiries precisely here..."
-                      className="w-full bg-gray-55/30 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                    ></textarea>
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      type="submit"
-                      id="contact-page-submit-btn"
-                      className="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold py-3.5 px-6 rounded-full shadow-md hover:shadow-lg transition-all text-sm uppercase tracking-wider flex items-center justify-center space-x-2 border-0 outline-none cursor-pointer"
-                    >
-                      <Send className="h-4 w-4" />
-                      <span>Transmit Message</span>
-                    </button>
-                  </div>
-
-                </form>
-              )}
-            </div>
-
-            {/* Right side: Office Hours & Location map placeholder */}
-            <div className="lg:col-span-5 space-y-8">
-              
-              {/* Office Hours Card */}
-              <div className="bg-white rounded-3xl p-8 border border-brand-100 shadow-sm">
-                <div className="flex items-center space-x-3 text-brand-700 mb-4">
-                  <Clock className="h-6 w-6 text-brand-700" />
-                  <h3 className="text-xl font-bold font-display text-gray-900">Office Hours</h3>
-                </div>
-                <p className="text-gray-500 text-xs mb-6 font-medium font-sans">
-                  Our head office operates during the listed schedule. We are closed on public holidays.
-                </p>
-                <div className="space-y-3.5 text-sm text-gray-600 font-sans">
-                  <div className="flex justify-between border-b border-gray-150 pb-2">
-                    <span className="font-semibold text-gray-700">Monday</span>
-                    <span className="text-brand-700 font-medium font-semibold">9:00 AM – 5:00 PM</span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-150 pb-2">
-                    <span className="font-semibold text-gray-700">Tuesday</span>
-                    <span className="text-brand-700 font-medium font-semibold">9:00 AM – 5:00 PM</span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-150 pb-2">
-                    <span className="font-semibold text-gray-700">Wednesday</span>
-                    <span className="text-brand-700 font-medium font-semibold">9:00 AM – 5:00 PM</span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-150 pb-2">
-                    <span className="font-semibold text-gray-700">Thursday</span>
-                    <span className="text-brand-700 font-medium font-semibold">9:00 AM – 5:00 PM</span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-150 pb-2">
-                    <span className="font-semibold text-gray-700">Friday</span>
-                    <span className="text-brand-700 font-medium font-semibold">9:00 AM – 5:00 PM</span>
-                  </div>
-                  <div className="flex justify-between border-b border-gray-150 pb-2">
-                    <span className="font-semibold text-gray-700">Saturday</span>
-                    <span className="text-amber-500 font-bold uppercase text-xs">By Appointment</span>
-                  </div>
-                  <div className="flex justify-between pb-1">
-                    <span className="font-semibold text-red-500">Sunday</span>
-                    <span className="text-red-500 font-bold uppercase text-xs">Closed</span>
+                  {/* Subject */}
+                  <div className="space-y-2">
+                    <label htmlFor="contact-subject" className="block font-mono text-[10px] uppercase text-brand-dark/75 tracking-widest font-bold">
+                      Subject Matter
+                    </label>
+                    <input
+                      type="text"
+                      id="contact-subject"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      placeholder="e.g., Partnership Proposal"
+                      className="w-full bg-brand-light border border-brand-purple/10 focus:border-[#CC9838] focus:outline-none px-4 py-3.5 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200"
+                    />
                   </div>
                 </div>
-              </div>
 
-              {/* Graphical Location Placeholder (Highly custom map representation) */}
-              <div className="bg-brand-50 rounded-3xl p-6 border border-brand-100 flex flex-col justify-between h-72 relative overflow-hidden">
-                {/* Custom Stylistic Background Representation of a Map */}
-                <div className="absolute inset-0 bg-brand-100/50 pointer-events-none">
-                  <svg className="w-full h-full opacity-60" xmlns="http://www.w3.org/2000/svg">
-                    {/* Abstract grid lines for a map */}
-                    <path d="M 0 50 L 500 50 M 0 150 L 500 150 M 0 250 L 500 250 M 100 0 L 100 300 M 250 0 L 250 300 M 400 0 L 400 300" stroke="#7C3AED" strokeWidth="1" strokeDasharray="5,5" fill="none" />
-                    {/* Abstract road pathways */}
-                    <path d="M -10 100 C 150 120, 200 80, 500 110 M 150 -10 C 130 150, 180 200, 220 310" stroke="#6D28D9" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.3" />
-                    <path d="M -10 220 Q 300 180, 500 240" stroke="#4F46E5" strokeWidth="2.5" fill="none" opacity="0.25" />
-                    {/* Pulsing Pin locator */}
-                    <circle cx="200" cy="115" r="14" fill="#6B21A8" fillOpacity="0.2" className="animate-ping" />
-                    <circle cx="200" cy="115" r="6" fill="#6B21A8" />
-                  </svg>
+                {/* Interest Dropdown */}
+                <div className="space-y-2">
+                  <label htmlFor="contact-interest" className="block font-mono text-[10px] uppercase text-brand-dark/75 tracking-widest font-bold">
+                    Primary Agenda / Intent
+                  </label>
+                  <select
+                    id="contact-interest"
+                    value={formData.interest}
+                    onChange={(e) => setFormData({ ...formData, interest: e.target.value })}
+                    className="w-full bg-brand-light border border-brand-purple/10 focus:border-[#CC9838] focus:outline-none px-4 py-3.5 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200"
+                  >
+                    <option value="PWWE Cooperative Enrollment">PWWE Cooperative Enrollment</option>
+                    <option value="Skills Cohort Entry">Skills Cohort Entry</option>
+                    <option value="Volunteering as a Mentor">Volunteering as a Mentor</option>
+                    <option value="Donation Support">Donation Support</option>
+                    <option value="General Inquiry">General Inquiry</option>
+                  </select>
                 </div>
 
-                <div className="relative z-10 flex flex-col justify-between h-full text-left">
-                  <div className="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-sm max-w-[210px] border border-brand-100">
-                    <span className="text-[9px] font-bold text-brand-700 uppercase tracking-widest block font-sans">Sovereign Point</span>
-                    <span className="text-xs font-bold text-slate-800 font-display block mt-0.5">Jericho, Ibadan</span>
-                    <p className="text-[10px] text-gray-500 leading-tight mt-1">
-                      2nd Floor, ANCE Building, Oyo State.
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 text-brand-900 bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-brand-100/50 self-start text-xs font-semibold">
-                    <MapPin className="h-4 w-4 text-brand-700" />
-                    <span>Latitude: 7.39° N, Longitude: 3.88° E</span>
-                  </div>
+                {/* Message */}
+                <div className="space-y-2">
+                  <label htmlFor="contact-message" className="block font-mono text-[10px] uppercase text-brand-dark/75 tracking-widest font-bold">
+                    Detailed Message Ledger *
+                  </label>
+                  <textarea
+                    id="contact-message"
+                    required
+                    rows={6}
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="Provide extensive details about your cottage enterprise, skill background, or administrative questions..."
+                    className="w-full bg-brand-light border border-brand-purple/10 focus:border-[#CC9838] focus:outline-none px-4 py-3.5 text-xs sm:text-sm font-sans text-brand-dark transition-all duration-200 resize-none"
+                  />
                 </div>
-              </div>
 
-            </div>
+                {/* Information Guarantee stamp */}
+                <div className="flex gap-2.5 items-start text-[11px] text-brand-dark/50 leading-relaxed font-sans pt-2">
+                  <ShieldCheck size={16} className="text-[#CC9838] flex-shrink-0 mt-0.5" />
+                  <span>
+                    Your submission is filed in compliance with PWWE social data privacy audits. We do not distribute your personal contact logs to commercial third-parties.
+                  </span>
+                </div>
 
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  className="w-full py-4.5 bg-brand-purple text-brand-light font-mono text-xs uppercase tracking-widest font-extrabold border border-brand-purple hover:bg-transparent hover:text-brand-purple transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  id="contact-submit-btn"
+                >
+                  <span>Submit Register Log</span>
+                  <Send size={13} />
+                </button>
+              </form>
+            )}
           </div>
+
         </div>
       </section>
 
+      {/* Minor Operational Hours at bottom */}
+      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-16 mt-16 border-t border-brand-purple/10 text-xs font-sans text-brand-dark/50">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <span>*Emergency cluster guidelines are distributed to verified cooperative leaders via direct physical ledgers only.</span>
+          <div className="flex items-center gap-1">
+            <Clock size={13} />
+            <span>Jericho Office Hours: Monday to Friday from 9:00 AM to 5:00 PM</span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
