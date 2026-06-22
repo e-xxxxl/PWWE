@@ -10,9 +10,9 @@
   --color-brand-accent: #CC9838;
   --color-brand-accent-light: #FDF6E8;
   
-  --font-display: "Fraunces", serif;
-  --font-sans: "Plus Jakarta Sans", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Poppins", serif;
+  --font-sans: "Poppins", sans-serif;
+  --font-mono: "Poppins", serif;
 }
 
 body {

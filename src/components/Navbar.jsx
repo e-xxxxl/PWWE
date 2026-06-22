@@ -88,7 +88,7 @@ export default function Navbar() {
               <span>Mon–Fri: 9am–5pm</span>
             </div>
             <span className="text-white/25">|</span>
-            <span className="text-[10px] bg-[#CC9838]/20 text-[#CC9838] px-2.5 py-1 font-sans font-bold tracking-widest uppercase">
+            <span className="text-[10px] rounded bg-[#CC9838]/20 text-[#CC9838] px-2.5 py-1 font-sans font-bold tracking-widest uppercase">
               Ibadan, Oyo State
             </span>
           </div>
@@ -189,7 +189,7 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/auth?tab=register"
-                className="px-5 py-2.5 bg-brand-purple text-brand-light text-xs font-mono uppercase tracking-widest font-bold border border-brand-purple hover:bg-[#FAF8F5] hover:text-brand-purple transition-all duration-300 flex items-center gap-2 group shadow-xs"
+                className="px-5 py-2.5 bg-brand-purple rounded-3xl text-brand-light text-xs font-mono uppercase tracking-widest font-bold border border-brand-purple hover:bg-[#FAF8F5] hover:text-brand-purple transition-all duration-300 flex items-center gap-2 group shadow-xs"
                 id="nav-cta-signup"
               >
                 <span>Register</span>
