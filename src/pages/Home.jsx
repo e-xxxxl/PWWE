@@ -1,323 +1,189 @@
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, Star, Send, Building, PhoneCall, ChevronLeft, ChevronRight, CheckCircle2, ArrowUp } from "lucide-react";
-import homee from "../../assets/homee.png";
-export default function Home() {
-  const [formState, setFormState] = useState({
-    name: "",
+import React, { useState, useEffect } from "react";
+import { 
+  FaChevronRight, 
+  FaBullseye, 
+  FaChartBar, 
+  FaPuzzlePiece, 
+  FaUsers, 
+  FaHandsHelping, 
+  FaLightbulb,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaEnvelope,
+  FaArrowUp
+} from "react-icons/fa";
+import home from "../../assets/pwwehomee.png";
+import finalImage from "../../assets/finalimage.png";
+
+// Import the two new images
+import leftBanner from "../../assets/left-banner.png";     // ← Update with your actual filename
+import rightBanner from "../../assets/right-banner.png";   // ← Update with your actual filename
+
+const Home = () => {
+  const [formData, setFormData] = useState({
+    fullName: "",
     email: "",
-    subject: "",
-    interest: "PWWE Cooperative Enrollment",
-    message: "",
+    phone: "",
+    interest: "",
+    message: ""
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [activePathwayTab, setActivePathwayTab] = useState(0);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
+
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const autoplayTimer = useRef(null);
 
-  const carouselSlides = [
-    {
-      image: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=1600&q=80",
-      title: "Your savings. Your skills. Your business. Your power.",
-      subtitle: "PWWE brings women together across Oyo State to save collectively, learn practical skills, and build businesses that support families and transform communities. No predatory loans. No impossible conditions. Just women investing in each other.",
-      primaryText: "Join a Cooperative",
-      primaryLink: "/auth?tab=register",
-      secondaryText: "About the Foundation",
-      secondaryLink: "/about",
-    },
-    {
-      image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1600&q=80",
-      title: "Practical skills that open real doors",
-      subtitle: "Our training cohorts cover textile production, soap and detergent making, agro-processing, and other trades women in this region can turn into income immediately. You leave with products, not just notes.",
-      primaryText: "Apply for Training",
-      primaryLink: "/contact?signup=skills",
-      secondaryText: "Our Approach",
-      secondaryLink: "/about",
-    },
-    {
-      image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1600&q=80",
-      title: "We lend to each other — without the burden of interest",
-      subtitle: "Our rotating savings groups are member-led and member-owned. Every contribution stays within the circle. When it's your turn, the full pool is yours. Simple records, full transparency, and a sisterhood that holds you accountable.",
-      primaryText: "Member Portal",
-      primaryLink: "/auth",
-      secondaryText: "Contact Us",
-      secondaryLink: "/contact",
-    }
-  ];
-
-  // Autoplay Logic
+  // Scroll to top button visibility
   useEffect(() => {
-    if (!isAutoplayPaused) {
-      autoplayTimer.current = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
-      }, 7000);
-    }
-    return () => {
-      if (autoplayTimer.current) clearInterval(autoplayTimer.current);
-    };
-  }, [isAutoplayPaused]);
-
-  // Scroll to top visibility
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 400) {
+    const toggleVisibility = () => {
+      if (window.scrollY > 500) {
         setShowScrollTop(true);
       } else {
         setShowScrollTop(false);
       }
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
   }, []);
-
-  const handleNextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
-  };
-
-  const handlePrevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length);
-  };
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formState.name && formState.email && formState.message) {
-      setIsSubmitted(true);
-      setTimeout(() => {
-        setIsSubmitted(false);
-        setFormState({
-          name: "",
-          email: "",
-          subject: "",
-          interest: "PWWE Cooperative Enrollment",
-          message: "",
-        });
-      }, 7000);
-    }
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const pathways = [
-    {
-      step: "01",
-      title: "Personal Foundation",
-      description:
-        "Before a woman can build a business, she needs to know she can. We start with skills training, one-on-one mentorship, and a circle of women who understand her circumstances. This is where confidence and capability begin.",
-      bullets: ["Vocational skills that match local market demand", "Personal mentorship from experienced members", "Wellness check-ins and peer support"],
-    },
-    {
-      step: "02",
-      title: "Collective Savings",
-      description:
-        "Women organize into small savings circles within their communities. Each member contributes regularly, records are kept transparently, and the pooled funds rotate among members on an agreed schedule. There is never any interest charged — only mutual trust and accountability.",
-      bullets: ["Transparent group savings ledgers", "Rotating payouts on agreed schedules", "Peer accountability and support"],
-    },
-    {
-      step: "03",
-      title: "Enterprise Launch",
-      description:
-        "With skills, savings, and a support network in place, women are ready to launch. We provide guidance on branding, packaging, bookkeeping, and market access — particularly within Ibadan and surrounding areas where we have established trade relationships.",
-      bullets: ["Branding and packaging support", "Local market connections in Ibadan", "Simple bookkeeping and business management"],
-    },
-  ];
-
-  const services = [
-    { title: "Skills Development", desc: "Hands-on workshops in soap making, textile craft, and agro-processing. You'll create actual products during training — products you can sell." },
-    { title: "Seed Funding Access", desc: "Small grants and rotating savings pools that put capital directly into the hands of women ready to launch or expand their enterprises." },
-    { title: "Financial Literacy", desc: "Practical training in record keeping, profit tracking, pricing, and staying out of debt. Taught in clear, simple terms by women who've done it themselves." },
-    { title: "Community Building", desc: "Safe, regular gatherings where members share business challenges, childcare arrangements, market tips, and encouragement." },
-    { title: "Mentorship", desc: "Every new member is paired with an experienced cooperative leader who provides guidance through the first year of business ownership and beyond." },
-    { title: "Enterprise Support", desc: "Assistance with trade permits, storage solutions, and direct introductions to supply chains and buyers in Ibadan and across Oyo State." },
-  ];
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    alert("Thank you! Your request has been submitted. (Demo)");
+  };
 
   return (
-    <div className="overflow-hidden bg-brand-light" id="home-page-container">
-      
+    <>
       {/* Hero Section */}
-      <section 
-        className="relative bg-[#120A14] min-h-[580px] md:min-h-[660px] lg:min-h-[720px] flex items-center overflow-hidden" 
-        id="hero-section"
-        onMouseEnter={() => setIsAutoplayPaused(true)}
-        onMouseLeave={() => setIsAutoplayPaused(false)}
+      <section
+        className="relative min-h-screen flex items-center"
+        style={{
+          backgroundImage: `url(${home})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
-        <div className="absolute inset-0 z-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSlide}
-              initial={{ opacity: 0, scale: 1.05 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.9 }}
-              className="absolute inset-0 w-full h-full bg-cover bg-center"
-              style={{ backgroundImage: `url(${carouselSlides[currentSlide].image})` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-[#120A14]/95 via-[#120A14]/85 to-transparent" />
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        <div className="absolute inset-0 bg-black/35"></div>
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 py-20 text-white">
-          <div className="max-w-2xl space-y-6 md:space-y-8">
-            
-            <div className="min-h-[140px] md:min-h-[180px] lg:min-h-[220px]">
-              <AnimatePresence mode="wait">
-                <motion.h1
-                  key={currentSlide}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -30 }}
-                  transition={{ duration: 0.6 }}
-                  className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]"
-                  id="carousel-slide-title"
-                >
-                  {carouselSlides[currentSlide].title}
-                </motion.h1>
-              </AnimatePresence>
-            </div>
-            
-            <div className="min-h-[80px] md:min-h-[100px]">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={currentSlide}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.9 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="text-sm md:text-base text-gray-200 leading-relaxed"
-                >
-                  {carouselSlides[currentSlide].subtitle}
-                </motion.p>
-              </AnimatePresence>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-              <Link
-                to={carouselSlides[currentSlide].primaryLink}
-                className="px-8 py-4 bg-brand-purple text-white text-center text-sm font-semibold hover:bg-white hover:text-brand-dark transition-all duration-300"
-                id="carousel-primary-cta"
-              >
-                {carouselSlides[currentSlide].primaryText}
-              </Link>
-              <Link
-                to={carouselSlides[currentSlide].secondaryLink}
-                className="px-8 py-4 bg-transparent text-white border border-white/30 text-center text-sm font-semibold hover:border-[#CC9838] hover:text-[#CC9838] transition-all duration-300"
-                id="carousel-secondary-cta"
-              >
-                {carouselSlides[currentSlide].secondaryText}
-              </Link>
-            </div>
-
-            <div className="flex items-center justify-between pt-12 border-t border-white/10 text-xs text-white/50">
-              <div className="hidden sm:flex items-center gap-2">
-                {carouselSlides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    aria-label={`Go to slide ${index + 1}`}
-                    className={`h-1 transition-all duration-300 cursor-pointer ${
-                      currentSlide === index ? "bg-[#CC9838] w-12" : "bg-white/20 w-8 hover:bg-white/50"
-                    }`}
-                  />
-                ))}
+        <div className="relative z-10 max-w-7xl mx-auto w-full px-6 lg:px-12">
+          <div className="max-w-xl">
+            <div className="mb-8">
+              <div className="flex gap-5 mb-4">
+                <div className="w-0 h-0 border-t-[14px] border-b-[14px] border-l-[24px] border-t-transparent border-b-transparent border-l-[#62C11A]"></div>
+                <div className="w-0 h-0 border-t-[14px] border-b-[14px] border-l-[24px] border-t-transparent border-b-transparent border-l-[#62C11A]"></div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="w-0 h-0 border-t-[8px] border-b-[8px] border-l-[14px] border-t-transparent border-b-transparent border-l-[#62C11A]"></div>
+                <div className="w-1 h-1 bg-[#ff00ff] rounded-full"></div>
               </div>
             </div>
 
+            <h1 className="text-white text-4xl md:text-5xl lg:text-6xl font-light leading-tight mb-16">
+              Economic Empowerment
+              <br />
+              Through Women
+              <br />
+              Entrepreneurship
+            </h1>
+
+            <p className="text-white text-lg md:text-xl font-semibold mb-16">
+              Empowering Women. Transforming Communities
+            </p>
+
+            <button className="bg-[#7D1DC9] hover:bg-[#96158F] transition-all duration-300 text-white px-10 py-5 rounded-full font-semibold flex items-center gap-3">
+              Join The Cooperative
+              <FaChevronRight size={14} />
+            </button>
           </div>
         </div>
-
-        <button
-          onClick={handlePrevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-black/40 hover:bg-[#CC9838] transition-all duration-300 border border-white/10 text-white cursor-pointer"
-          aria-label="Previous slide"
-          id="prev-slide-btn"
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <button
-          onClick={handleNextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-black/40 hover:bg-[#CC9838] transition-all duration-300 border border-white/10 text-white cursor-pointer"
-          aria-label="Next slide"
-          id="next-slide-btn"
-        >
-          <ChevronRight size={20} />
-        </button>
       </section>
 
-      {/* Mission Statement */}
-      <section className="bg-brand-light/30 border-y border-brand-purple/10" id="mission-strip">
-        <div className="max-w-7xl mx-auto py-16 px-6 text-center">
-          <span className="block text-xs uppercase tracking-widest text-[#CC9838] mb-3 font-semibold">
-            The Power Within Women Empowerment Foundation
-          </span>
-          <h2 className="text-3xl sm:text-5xl italic font-light text-brand-dark leading-tight max-w-3xl mx-auto">
-            Helping women in Oyo State move from survival to stability to success — on their own terms.
-          </h2>
-        </div>
-      </section>
-
-      
       {/* Three Pathways Section */}
-      <section className="py-16 px-6 bg-gray-50" id="three-pathways-section">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-sm font-semibold text-brand-purple mb-2">Empowering Women To Rise, Thrive, And Prosper.</p>
-            <h2 className="text-4xl md:text-5xl font-bold text-brand-dark">Three Pathways. One Mission.</h2>
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center mb-16">
+            <p className="text-purple-600 font-medium text-lg tracking-wide">
+              Empowering Women To Rise, Thrive, And Prosper.
+            </p>
+            <h2 className="text-5xl font-bold mt-3">
+              Three Pathways. One Mission.
+            </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-            {/* Human Empowerment */}
-            <div className="bg-white p-8 border-l-4 border-brand-purple hover:bg-brand-purple hover:text-white transition-all duration-300 group cursor-pointer">
-              <h3 className="text-lg font-bold text-brand-dark group-hover:text-white mb-4 transition-colors duration-300">HUMAN EMPOWERMENT</h3>
-              <p className="text-gray-700 group-hover:text-white/90 text-sm leading-relaxed transition-colors duration-300">
-                Many women carry incredible potential but lack the knowledge, support, opportunities, or guidance needed to thrive.
+          <div className="grid md:grid-cols-3 gap-10">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-xl mb-6 tracking-wide">HUMAN EMPOWERMENT</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Many women carry incredible potential but lack the knowledge, support,
+                opportunities, or guidance needed to thrive.
               </p>
             </div>
 
-            {/* Cooperative Empowerment */}
-            <div className="bg-white p-8 border-l-4 border-brand-purple hover:bg-brand-purple hover:text-white transition-all duration-300 group cursor-pointer">
-              <h3 className="text-lg font-bold text-brand-dark group-hover:text-white mb-4 transition-colors duration-300">COOPERATIVE EMPOWERMENT</h3>
-              <p className="text-gray-700 group-hover:text-white/90 text-sm leading-relaxed transition-colors duration-300">
-                Our Cooperative Society empowers women to grow wealth together through structured savings, responsible lending, financial education, and collective support.
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-xl mb-6 tracking-wide">COOPERATIVE EMPOWERMENT</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Our Cooperative Society empowers women to grow wealth together through
+                structured savings, responsible lending, financial education, and collective
+                support.
               </p>
             </div>
 
-            {/* Business Development */}
-            <div className="bg-white p-8 border-l-4 border-brand-purple hover:bg-brand-purple hover:text-white transition-all duration-300 group cursor-pointer">
-              <h3 className="text-lg font-bold text-brand-dark group-hover:text-white mb-4 transition-colors duration-300">BUSINESS DEVELOPMENT</h3>
-              <p className="text-gray-700 group-hover:text-white/90 text-sm leading-relaxed transition-colors duration-300">
-                We help women transform skills, talents, and passions into sustainable businesses through entrepreneurship training, business mentoring, networking opportunities.
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-xl mb-6 tracking-wide">BUSINESS DEVELOPMENT</h3>
+              <p className="text-gray-600 leading-relaxed">
+                We help women transform skills, talents, and passions into sustainable businesses
+                through entrepreneurship training, business mentoring, networking opportunities.
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Centered Image Section */}
+      <section className="py-16 bg-white flex justify-center">
+        <div className="max-w-[1024px] px-6">
+          <img
+            src={finalImage}
+            alt="Women Empowerment Final Visual"
+            className="mx-auto rounded-2xl shadow-xl"
+            style={{ width: "100%", maxWidth: "1024px", height: "auto" }}
+          />
         </div>
       </section>
 
       {/* What We Do Section */}
-      <section className="py-20 px-6 bg-gray-50" id="what-we-do-section">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-brand-dark mb-4">What We Do</h2>
-            <p className="text-base text-black max-w-2xl mx-auto leading-relaxed">
-              Every woman carries untapped potential. Through empowerment, financial inclusion, and enterprise development, we help women unlock that potential and create lasting impact.
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold mb-4">What We Do</h2>
+            <p className="text-gray-600 max-w-3xl mx-auto text-lg">
+              Every woman carries untapped potential. Through empowerment, financial inclusion, 
+              and enterprise development, we help women unlock that potential and create lasting impact.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-1 max-w-5xl mx-auto bg-gray-200 p-1 rounded-lg">
-            {services.map((svc, i) => (
-              <div key={i} className="bg-white p-8 text-center hover:bg-brand-purple hover:text-white transition-all duration-300 group cursor-pointer">
-                <div className="flex justify-center mb-4">
-                  <span className="text-3xl font-bold text-brand-purple group-hover:text-white transition-colors duration-300">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { icon: FaBullseye, title: "Skills Development", desc: "Training women in relevant vocational, entrepreneurial, and digital skills." },
+              { icon: FaChartBar, title: "Economic Empowerment", desc: "Providing women with practical tools, financial education, and income-generating opportunities." },
+              { icon: FaPuzzlePiece, title: "Financial Literacy", desc: "Teaching budgeting, savings, cooperative models, and financial planning." },
+              { icon: FaUsers, title: "Community Building", desc: "Creating supportive networks where women learn, grow, and succeed together." },
+              { icon: FaHandsHelping, title: "Mentorship & Accountability", desc: "Providing guidance, encouragement, and support for long-term success." },
+              { icon: FaLightbulb, title: "Enterprise Support", desc: "Helping women turn talents and ideas into sustainable businesses." }
+            ].map((item, i) => (
+              <div key={i} className="group bg-white rounded-3xl p-8 border border-gray-100 hover:bg-[#7D1DC9] transition-all duration-500 hover:shadow-xl flex flex-col">
+                <div className="mb-6 text-4xl text-[#7D1DC9] group-hover:text-white transition-colors">
+                  <item.icon />
                 </div>
-                <h3 className="text-lg font-bold text-brand-dark group-hover:text-white mb-3 transition-colors duration-300">{svc.title}</h3>
-                <p className="text-gray-700 group-hover:text-white/90 text-sm leading-relaxed transition-colors duration-300">
-                  {svc.desc}
+                <h3 className="font-bold text-xl mb-4 text-gray-900 group-hover:text-white transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-gray-600 group-hover:text-purple-100 transition-colors">
+                  {item.desc}
                 </p>
               </div>
             ))}
@@ -325,54 +191,141 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Raising Women of Purpose Section */}
-      <section className="py-20 px-6 bg-white" id="purpose-section">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-brand-dark mb-6 leading-tight">
-            Raising Women of Purpose, Prosperity, and Influence.
-          </h2>
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <span className="h-px w-12 bg-brand-purple"></span>
-            <span className="text-lg md:text-xl font-semibold text-brand-purple">Over 3 Pillars. One Mission.</span>
-            <span className="h-px w-12 bg-brand-purple"></span>
-          </div>
-          <p className="text-base md:text-lg text-black max-w-2xl mx-auto leading-relaxed">
-            Whether you are looking to grow a business, access mentorship, build financial stability, or create meaningful impact in your community, PWWEFOUNDATION provides the support and platform to help you succeed.
-          </p>
-        </div>
-      </section>
+      {/* Contact Section */}
+      <section className="bg-[#0F0F0F] py-20 text-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 grid md:grid-cols-2 gap-16">
+          <div>
+            <h2 className="text-4xl font-bold mb-3">CONTACT US :</h2>
+            <p className="text-lg mb-12">
+              Together, we can empower more women and transform more communities
+            </p>
 
-      {/* Featured Image Section */}
-      <section className="py-19 px-6 bg-gray-50" id="featured-image-section">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
-            <div className="relative w-full" style={{ paddingBottom: "66.6%" }}>
-              <img
-                src={homee}
-                alt="PWWE Foundation women empowerment initiative"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+            <div className="space-y-10">
+              <div className="flex gap-5">
+                <div className="w-11 h-11 bg-[#96158F] rounded flex items-center justify-center flex-shrink-0 text-xl">
+                  <FaMapMarkerAlt />
+                </div>
+                <div>
+                  <p className="font-semibold uppercase tracking-wider mb-1">OUR HEAD OFFICE ADDRESS:</p>
+                  <p>2nd Floor, ANCE Building, Jericho, Ibadan, Oyo State</p>
+                </div>
+              </div>
+
+              <div className="flex gap-5">
+                <div className="w-11 h-11 bg-[#96158F] rounded flex items-center justify-center flex-shrink-0 text-xl">
+                  <FaPhone />
+                </div>
+                <div>
+                  <p className="font-semibold uppercase tracking-wider mb-1">CALL FOR HELP:</p>
+                  <p>+234 903 146 3004</p>
+                </div>
+              </div>
+
+              <div className="flex gap-5">
+                <div className="w-11 h-11 bg-[#96158F] rounded flex items-center justify-center flex-shrink-0 text-xl">
+                  <FaEnvelope />
+                </div>
+                <div>
+                  <p className="font-semibold uppercase tracking-wider mb-1">MAIL US FOR MORE INFORMATION:</p>
+                  <p>contact@pwwefoundation.com</p>
+                  <p>support@pwwefoundation.com</p>
+                </div>
+              </div>
             </div>
           </div>
+
+          <div>
+            <p className="text-lg mb-8">
+              Whether you are seeking empowerment, financial growth, business support, or partnership opportunities, our team is ready to help.
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <input type="text" name="fullName" placeholder="Full Name *" required value={formData.fullName} onChange={handleChange}
+                className="w-full bg-[#1F1F1F] border border-gray-700 rounded-lg px-6 py-4 focus:outline-none focus:border-[#7D1DC9]" />
+              
+              <input type="email" name="email" placeholder="Email Address *" required value={formData.email} onChange={handleChange}
+                className="w-full bg-[#1F1F1F] border border-gray-700 rounded-lg px-6 py-4 focus:outline-none focus:border-[#7D1DC9]" />
+              
+              <input type="tel" name="phone" placeholder="Phone Number *" required value={formData.phone} onChange={handleChange}
+                className="w-full bg-[#1F1F1F] border border-gray-700 rounded-lg px-6 py-4 focus:outline-none focus:border-[#7D1DC9]" />
+
+              <select name="interest" value={formData.interest} onChange={handleChange}
+                className="w-full bg-[#1F1F1F] border border-gray-700 rounded-lg px-6 py-4 focus:outline-none focus:border-[#7D1DC9]">
+                <option value="">I am interested in...</option>
+                <option value="empowerment">Empowerment</option>
+                <option value="financial">Financial Growth</option>
+                <option value="business">Business Support</option>
+                <option value="partnership">Partnership Opportunities</option>
+              </select>
+
+              <textarea name="message" placeholder="Tell us briefly how we can help you..." rows={5} value={formData.message} onChange={handleChange}
+                className="w-full bg-[#1F1F1F] border border-gray-700 rounded-lg px-6 py-4 focus:outline-none focus:border-[#7D1DC9]" />
+
+              <button type="submit" className="w-full bg-[#96158F]  transition-all duration-300 py-5 rounded-lg font-semibold text-lg">
+                Send Your Request
+              </button>
+            </form>
+          </div>
         </div>
       </section>
+{/* Over 3 Pillars Section - smaller banners, roomier center text */}
+<section className="py-20 bg-gray-100">
+  <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    <div className="grid lg:grid-cols-12 gap-y-10 lg:gap-x-8 items-center">
 
-      {/* Scroll to Top Button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-3 bg-brand-purple text-white rounded-full shadow-lg hover:bg-brand-dark transition-all duration-300 cursor-pointer"
-            aria-label="Scroll to top"
-          >
-            <ArrowUp size={20} />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Left Image - smaller, fixed-ish size like a banner ad */}
+      <div className="lg:col-span-3 flex justify-center">
+        <div className="relative rounded-2xl overflow-hidden shadow-lg w-full max-w-[280px] group">
+          <img
+            src={leftBanner}
+            alt="Empowering Women"
+            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+      </div>
+
+      {/* Center Content - wider column, normal/relaxed text sizing */}
+      <div className="lg:col-span-6 text-center px-2">
+        <p className="text-purple-600 font-semibold text-base tracking-wide mb-4">
+          Raising Women of Purpose, Prosperity, and Influence.
+        </p>
+        <h2 className="text-3xl md:text-4xl font-bold mb-5 leading-snug text-gray-900">
+          Over 3 Pillars. One Mission.
+        </h2>
+        <p className="text-gray-600 text-base leading-relaxed max-w-xl mx-auto">
+          Whether you are looking to grow a business, access mentorship, build financial
+          stability, or create meaningful impact in your community, <span className="font-semibold text-gray-800">PWWEFOUNDATION</span> provides
+          the support and platform to help you succeed.
+        </p>
+      </div>
+
+      {/* Right Image - smaller, fixed-ish size like a banner ad */}
+      <div className="lg:col-span-3 flex justify-center">
+        <div className="relative rounded-2xl overflow-hidden shadow-lg w-full max-w-[280px] group">
+          <img
+            src={rightBanner}
+            alt="Empowered Women"
+            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+      </div>
 
     </div>
+  </div>
+</section>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-[#96158F] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 z-50"
+          aria-label="Scroll to top"
+        >
+          <FaArrowUp size={24} />
+        </button>
+      )}
+    </>
   );
-}
+};
+
+export default Home;
