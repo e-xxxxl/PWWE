@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { MapPin, Phone, Clock, ArrowRight, Check } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 import navlogo from "../../assets/logo.png";
 
 export default function Footer() {
@@ -118,24 +119,51 @@ export default function Footer() {
               )}
             </form>
 
-            {/* Social Icons */}
-            <div className="mt-10">
-              <p className="text-xs uppercase tracking-widest text-gray-400 mb-4">Follow Us</p>
-              <div className="flex gap-4">
-                <a href="#" className="w-9 h-9 bg-[#1F1F1F] hover:bg-purple-600 rounded-full flex items-center justify-center transition-colors">
-                  <i className="fab fa-facebook-f text-lg"></i>
-                </a>
-                <a href="#" className="w-9 h-9 bg-[#1F1F1F] hover:bg-purple-600 rounded-full flex items-center justify-center transition-colors">
-                  <i className="fab fa-twitter text-lg"></i>
-                </a>
-                <a href="#" className="w-9 h-9 bg-[#1F1F1F] hover:bg-purple-600 rounded-full flex items-center justify-center transition-colors">
-                  <i className="fab fa-instagram text-lg"></i>
-                </a>
-                <a href="#" className="w-9 h-9 bg-[#1F1F1F] hover:bg-purple-600 rounded-full flex items-center justify-center transition-colors">
-                  <i className="fab fa-youtube text-lg"></i>
-                </a>
-              </div>
-            </div>
+           {/* Social Icons */}
+<div className="mt-10">
+  <p className="text-xs uppercase tracking-widest text-gray-400 mb-4">Follow Us</p>
+  <div className="flex gap-4">
+    <a 
+      href="https://facebook.com" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="w-9 h-9 bg-[#1F1F1F] hover:bg-[#96158F] text-white rounded-full flex items-center justify-center transition-colors"
+      aria-label="Facebook"
+    >
+      <Facebook size={20} />
+    </a>
+
+    <a 
+      href="https://twitter.com" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="w-9 h-9 bg-[#1F1F1F] hover:bg-[#96158F] text-white rounded-full flex items-center justify-center transition-colors"
+      aria-label="Twitter"
+    >
+      <Twitter size={20} />
+    </a>
+
+    <a 
+      href="https://instagram.com" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="w-9 h-9 bg-[#1F1F1F] hover:bg-[#96158F] text-white rounded-full flex items-center justify-center transition-colors"
+      aria-label="Instagram"
+    >
+      <Instagram size={20} />
+    </a>
+
+    <a 
+      href="https://youtube.com" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="w-9 h-9 bg-[#1F1F1F] hover:bg-[#96158F] text-white rounded-full flex items-center justify-center transition-colors"
+      aria-label="YouTube"
+    >
+      <Youtube size={20} />
+    </a>
+  </div>
+</div>
           </div>
         </div>
       </div>

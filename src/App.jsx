@@ -6,10 +6,12 @@ import Contact from "./pages/Contact.jsx";
 import Auth from "./pages/Auth.jsx";
 import SignUp from "./components/SignUp.jsx";
 import Login from "./components/Login.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
 export default function App() {
   return (
     <BrowserRouter>
+    <ScrollToTop/>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />

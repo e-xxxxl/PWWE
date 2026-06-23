@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   FaFacebookF,
   FaTwitter,
@@ -81,6 +81,8 @@ const Navbar = () => {
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex justify-between items-center h-24">
               {/* Logo */}
+
+              <Link to="/ ">
               <div className="lg:bg-white lg:p-2">
                 <img
                   src={logo}
@@ -88,7 +90,7 @@ const Navbar = () => {
                   className="h-14 w-auto object-contain"
                 />
               </div>
-
+</Link>
               {/* Desktop Links */}
               <div className="hidden lg:flex items-center gap-12 ml-auto">
                 {navLinks.map((link) => (
