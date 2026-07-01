@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import AdminLogin from "./components/AdminLogin.jsx";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -39,6 +41,7 @@ export default function App() {
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="verify-email" element={<VerifyEmail />} />
+          <Route path="/admin/login" element={<AdminLogin/>} />
         </Route>
         
         {/* Protected Dashboard Route - Without Layout (has its own layout) */}
@@ -48,6 +51,16 @@ export default function App() {
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
+            
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard/>
+            </ProtectedRoute>
+            
           }
         />
         

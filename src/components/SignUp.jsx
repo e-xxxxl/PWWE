@@ -4,7 +4,7 @@ import { User, Mail, Phone, Lock, ArrowRight, CheckCircle2, AlertCircle, Loader2
 import axios from "axios";
 
 // Configure API
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5909/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://pwwe-server-1.onrender.com/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -111,9 +111,9 @@ const SignUp = () => {
       setIsSubmitted(true);
       
       // Auto-redirect after 3 seconds
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 3000);
+      // setTimeout(() => {
+      //   navigate("/verify-email");
+      // }, 3000);
       
     } catch (error) {
       setLoading(false);
@@ -175,10 +175,7 @@ const SignUp = () => {
                 We've sent a confirmation email to <strong>{formData.email}</strong>.
                 Please verify your email to get started.
               </p>
-              <p className="text-sm text-gray-500 mb-8">
-                You'll be redirected to your dashboard shortly...
-              </p>
-              <div className="flex gap-4 justify-center">
+              {/* <div className="flex gap-4 justify-center">
                 <Link
                   to="/dashboard"
                   className="inline-block bg-[#96158F] text-white px-10 py-4 rounded-2xl font-semibold hover:bg-[#7D1DC9] transition-colors"
@@ -191,7 +188,7 @@ const SignUp = () => {
                 >
                   Return Home
                 </Link>
-              </div>
+              </div> */}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">

@@ -4,7 +4,7 @@ import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, Loader2 } from "lucid
 import axios from "axios";
 
 // Configure API
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5909/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://pwwe-server-1.onrender.com/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -289,7 +289,7 @@ const Login = () => {
           <div className="mt-8 text-center">
             <p className="text-gray-600">
               Don't have an account?{" "}
-              <Link to="/register" className="text-[#96158F] font-semibold hover:underline">
+              <Link to="/signup" className="text-[#96158F] font-semibold hover:underline">
                 Create one here
               </Link>
             </p>

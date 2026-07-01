@@ -90,7 +90,7 @@ const VerifyEmail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white flex items-center justify-center p-32">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
