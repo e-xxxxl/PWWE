@@ -19,6 +19,8 @@ import finalImage from "../../assets/finalimage.png";
 import leftBanner from "../../assets/left-banner.png";     // ← Update with your actual filename
 import rightBanner from "../../assets/right-banner.png";   // ← Update with your actual filename
 
+import FadeInSection from "../components/FadeInSection"; // ← adjust path if needed
+
 const Home = () => {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -70,7 +72,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-black/35"></div>
 
         <div className="relative z-10 max-w-7xl mx-auto w-full px-6 lg:px-12">
-          <div className="max-w-xl">
+          <FadeInSection direction="up" className="max-w-xl">
             <div className="mb-8">
               <div className="flex gap-5 mb-4">
                 <div className="w-0 h-0 border-t-[14px] border-b-[14px] border-l-[24px] border-t-transparent border-b-transparent border-l-[#62C11A]"></div>
@@ -98,73 +100,73 @@ const Home = () => {
               Join The Cooperative
               <FaChevronRight size={14} />
             </button>
-          </div>
+          </FadeInSection>
         </div>
       </section>
 
       {/* Three Pathways Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="text-center mb-16">
+          <FadeInSection className="text-center mb-16">
             <p className="text-purple-600 font-medium text-lg tracking-wide">
               Empowering Women To Rise, Thrive, And Prosper.
             </p>
             <h2 className="text-5xl font-bold mt-3">
               Three Pathways. One Mission.
             </h2>
-          </div>
+          </FadeInSection>
 
           <div className="grid md:grid-cols-3 gap-10">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
+            <FadeInSection direction="up" delay={0} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
               <h3 className="font-bold text-xl mb-6 tracking-wide">HUMAN EMPOWERMENT</h3>
               <p className="text-gray-600 leading-relaxed">
                 Many women carry incredible potential but lack the knowledge, support,
                 opportunities, or guidance needed to thrive.
               </p>
-            </div>
+            </FadeInSection>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
+            <FadeInSection direction="up" delay={150} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
               <h3 className="font-bold text-xl mb-6 tracking-wide">COOPERATIVE EMPOWERMENT</h3>
               <p className="text-gray-600 leading-relaxed">
                 Our Cooperative Society empowers women to grow wealth together through
                 structured savings, responsible lending, financial education, and collective
                 support.
               </p>
-            </div>
+            </FadeInSection>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
+            <FadeInSection direction="up" delay={300} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 hover:shadow-md transition-shadow">
               <h3 className="font-bold text-xl mb-6 tracking-wide">BUSINESS DEVELOPMENT</h3>
               <p className="text-gray-600 leading-relaxed">
                 We help women transform skills, talents, and passions into sustainable businesses
                 through entrepreneurship training, business mentoring, networking opportunities.
               </p>
-            </div>
+            </FadeInSection>
           </div>
         </div>
       </section>
 
       {/* Centered Image Section */}
       <section className="py-16 bg-white flex justify-center">
-        <div className="max-w-[1024px] px-6">
+        <FadeInSection className="max-w-[1024px] px-6">
           <img
             src={finalImage}
             alt="Women Empowerment Final Visual"
             className="mx-auto rounded-2xl shadow-xl"
             style={{ width: "100%", maxWidth: "1024px", height: "auto" }}
           />
-        </div>
+        </FadeInSection>
       </section>
 
       {/* What We Do Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="text-center mb-16">
+          <FadeInSection className="text-center mb-16">
             <h2 className="text-5xl font-bold mb-4">What We Do</h2>
             <p className="text-gray-600 max-w-3xl mx-auto text-lg">
               Every woman carries untapped potential. Through empowerment, financial inclusion, 
               and enterprise development, we help women unlock that potential and create lasting impact.
             </p>
-          </div>
+          </FadeInSection>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -175,17 +177,19 @@ const Home = () => {
               { icon: FaHandsHelping, title: "Mentorship & Accountability", desc: "Providing guidance, encouragement, and support for long-term success." },
               { icon: FaLightbulb, title: "Enterprise Support", desc: "Helping women turn talents and ideas into sustainable businesses." }
             ].map((item, i) => (
-              <div key={i} className="group bg-white rounded-3xl p-8 border border-gray-100 hover:bg-[#7D1DC9] transition-all duration-500 hover:shadow-xl flex flex-col">
-                <div className="mb-6 text-4xl text-[#7D1DC9] group-hover:text-white transition-colors">
-                  <item.icon />
+              <FadeInSection key={i} direction="up" delay={i * 100}>
+                <div className="group bg-white rounded-3xl p-8 border border-gray-100 hover:bg-[#7D1DC9] transition-all duration-500 hover:shadow-xl flex flex-col h-full">
+                  <div className="mb-6 text-4xl text-[#7D1DC9] group-hover:text-white transition-colors">
+                    <item.icon />
+                  </div>
+                  <h3 className="font-bold text-xl mb-4 text-gray-900 group-hover:text-white transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600 group-hover:text-purple-100 transition-colors">
+                    {item.desc}
+                  </p>
                 </div>
-                <h3 className="font-bold text-xl mb-4 text-gray-900 group-hover:text-white transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-gray-600 group-hover:text-purple-100 transition-colors">
-                  {item.desc}
-                </p>
-              </div>
+              </FadeInSection>
             ))}
           </div>
         </div>
@@ -194,7 +198,7 @@ const Home = () => {
       {/* Contact Section */}
       <section className="bg-[#0F0F0F] py-20 text-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 grid md:grid-cols-2 gap-16">
-          <div>
+          <FadeInSection direction="left">
             <h2 className="text-4xl font-bold mb-3">CONTACT US :</h2>
             <p className="text-lg mb-12">
               Together, we can empower more women and transform more communities
@@ -232,9 +236,9 @@ const Home = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </FadeInSection>
 
-          <div>
+          <FadeInSection direction="right">
             <p className="text-lg mb-8">
               Whether you are seeking empowerment, financial growth, business support, or partnership opportunities, our team is ready to help.
             </p>
@@ -265,54 +269,55 @@ const Home = () => {
                 Send Your Request
               </button>
             </form>
+          </FadeInSection>
+        </div>
+      </section>
+
+      {/* Over 3 Pillars Section - smaller banners, roomier center text */}
+      <section className="py-20 bg-gray-100">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="grid lg:grid-cols-12 gap-y-10 lg:gap-x-8 items-center">
+
+            {/* Left Image - smaller, fixed-ish size like a banner ad */}
+            <FadeInSection direction="left" className="lg:col-span-3 flex justify-center">
+              <div className="relative rounded-2xl overflow-hidden shadow-lg w-full max-w-[280px] group">
+                <img
+                  src={leftBanner}
+                  alt="Empowering Women"
+                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+            </FadeInSection>
+
+            {/* Center Content - wider column, normal/relaxed text sizing */}
+            <FadeInSection direction="up" delay={150} className="lg:col-span-6 text-center px-2">
+              <p className="text-purple-600 font-semibold text-base tracking-wide mb-4">
+                Raising Women of Purpose, Prosperity, and Influence.
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-5 leading-snug text-gray-900">
+                Over 3 Pillars. One Mission.
+              </h2>
+              <p className="text-gray-600 text-base leading-relaxed max-w-xl mx-auto">
+                Whether you are looking to grow a business, access mentorship, build financial
+                stability, or create meaningful impact in your community, <span className="font-semibold text-gray-800">PWWEFOUNDATION</span> provides
+                the support and platform to help you succeed.
+              </p>
+            </FadeInSection>
+
+            {/* Right Image - smaller, fixed-ish size like a banner ad */}
+            <FadeInSection direction="right" className="lg:col-span-3 flex justify-center">
+              <div className="relative rounded-2xl overflow-hidden shadow-lg w-full max-w-[280px] group">
+                <img
+                  src={rightBanner}
+                  alt="Empowered Women"
+                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+            </FadeInSection>
+
           </div>
         </div>
       </section>
-{/* Over 3 Pillars Section - smaller banners, roomier center text */}
-<section className="py-20 bg-gray-100">
-  <div className="max-w-7xl mx-auto px-6 lg:px-12">
-    <div className="grid lg:grid-cols-12 gap-y-10 lg:gap-x-8 items-center">
-
-      {/* Left Image - smaller, fixed-ish size like a banner ad */}
-      <div className="lg:col-span-3 flex justify-center">
-        <div className="relative rounded-2xl overflow-hidden shadow-lg w-full max-w-[280px] group">
-          <img
-            src={leftBanner}
-            alt="Empowering Women"
-            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </div>
-      </div>
-
-      {/* Center Content - wider column, normal/relaxed text sizing */}
-      <div className="lg:col-span-6 text-center px-2">
-        <p className="text-purple-600 font-semibold text-base tracking-wide mb-4">
-          Raising Women of Purpose, Prosperity, and Influence.
-        </p>
-        <h2 className="text-3xl md:text-4xl font-bold mb-5 leading-snug text-gray-900">
-          Over 3 Pillars. One Mission.
-        </h2>
-        <p className="text-gray-600 text-base leading-relaxed max-w-xl mx-auto">
-          Whether you are looking to grow a business, access mentorship, build financial
-          stability, or create meaningful impact in your community, <span className="font-semibold text-gray-800">PWWEFOUNDATION</span> provides
-          the support and platform to help you succeed.
-        </p>
-      </div>
-
-      {/* Right Image - smaller, fixed-ish size like a banner ad */}
-      <div className="lg:col-span-3 flex justify-center">
-        <div className="relative rounded-2xl overflow-hidden shadow-lg w-full max-w-[280px] group">
-          <img
-            src={rightBanner}
-            alt="Empowered Women"
-            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
 
       {/* Scroll to Top Button */}
       {showScrollTop && (

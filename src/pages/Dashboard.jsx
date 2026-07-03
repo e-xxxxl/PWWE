@@ -1,5 +1,5 @@
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import PaystackPop from '@paystack/inline-js';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -51,6 +51,7 @@ const StatusBadge = ({ status }) => {
     cleared: "bg-green-50 text-green-700 border-green-200",
     pending: "bg-amber-50 text-amber-700 border-amber-200",
     rejected: "bg-red-50 text-red-700 border-red-200",
+    failed: "bg-red-50 text-red-700 border-red-200",
     approved: "bg-green-50 text-green-700 border-green-200",
     repaid: "bg-blue-50 text-blue-700 border-blue-200",
   };
@@ -150,9 +151,15 @@ const Dashboard = () => {
   // Forms
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState("");
-  const [depositMethod, setDepositMethod] = useState("bank_transfer");
+  const [depositMethod, setDepositMethod] = useState("paystack");
   const [depositNote, setDepositNote] = useState("");
   const [depositSubmitting, setDepositSubmitting] = useState(false);
+
+  // Paystack-specific state
+  const [paystackLoading, setPaystackLoading] = useState(false);
+  const [paystackStatus, setPaystackStatus] = useState(""); // "", "polling", "confirming"
+  const pollTimeoutRef = useRef(null);
+  const pollCancelledRef = useRef(false);
 
   const [loanForm, setLoanForm] = useState({ amount: "", purpose: "", termMonths: 3 });
   const [loanSubmitting, setLoanSubmitting] = useState(false);
@@ -176,6 +183,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchProfile();
+    // Clean up any in-flight polling when the component unmounts
+    return () => {
+      pollCancelledRef.current = true;
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+    };
   }, []);
 
   const fetchProfile = async () => {
@@ -307,6 +319,122 @@ const Dashboard = () => {
       showToast(err.response?.data?.message || "Failed to submit deposit");
     } finally {
       setDepositSubmitting(false);
+    }
+  };
+
+  // ── Paystack deposit flow ────────────────────────────────────────────────
+
+  // Repeatedly checks /payments/verify/:reference until it clears, fails,
+  // or we run out of attempts. Used as a fallback for when Paystack's
+  // onSuccess callback doesn't fire (e.g. popup closed early, flaky network).
+  const pollVerifyDeposit = (reference, { attempts = 6, delayMs = 4000 } = {}) => {
+    pollCancelledRef.current = false;
+    setPaystackStatus("polling");
+
+    const attempt = async (remaining) => {
+      if (pollCancelledRef.current) return; // a newer flow (or onSuccess) already handled it
+
+      try {
+        const { data } = await api.get(`/payments/verify/${reference}`);
+        const status = data?.transaction?.status;
+
+        if (status === "cleared") {
+          if (pollCancelledRef.current) return;
+          pollCancelledRef.current = true;
+          setPaystackStatus("");
+          showToast("Deposit confirmed!");
+          setDepositOpen(false);
+          setDepositAmount("");
+          setDepositNote("");
+          fetchSavingsBalance();
+          fetchSavingsHistory();
+          return;
+        }
+
+        if (status === "failed") {
+          pollCancelledRef.current = true;
+          setPaystackStatus("");
+          showToast("Payment was not successful");
+          return;
+        }
+        // still pending — fall through to retry
+      } catch {
+        // verify() can 400 while Paystack hasn't settled yet — just retry
+      }
+
+      if (remaining <= 1) {
+        pollCancelledRef.current = true;
+        setPaystackStatus("");
+        showToast("Still confirming — check Transaction history shortly");
+        return;
+      }
+
+      pollTimeoutRef.current = setTimeout(() => attempt(remaining - 1), delayMs);
+    };
+
+    attempt(attempts);
+  };
+
+  const stopPolling = () => {
+    pollCancelledRef.current = true;
+    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+    setPaystackStatus("");
+  };
+
+  const handlePaystackDeposit = async () => {
+    const amount = parseFloat(depositAmount.replace(/[^0-9.]/g, ""));
+    if (!amount || amount < 100) return showToast("Enter at least ₦100");
+
+    setPaystackLoading(true);
+    try {
+      // 1. Initialize on the backend — creates a pending Transaction + Paystack session
+      const { data } = await api.post("/payments/initialize-deposit", {
+        amount,
+        note: depositNote || undefined,
+      });
+
+      const { access_code, reference } = data.data;
+
+      // 2. Resume the Paystack checkout using the access_code from the backend
+      const popup = new PaystackPop();
+      popup.resumeTransaction(access_code, {
+        onSuccess: async () => {
+          // Callback fired — verify immediately and stop any background poll
+          stopPolling();
+          setPaystackStatus("confirming");
+          try {
+            await api.get(`/payments/verify/${reference}`);
+            showToast("Deposit confirmed!");
+            setDepositOpen(false);
+            setDepositAmount("");
+            setDepositNote("");
+            fetchSavingsBalance();
+            fetchSavingsHistory();
+          } catch {
+            showToast("Payment received — confirming, check back shortly");
+          } finally {
+            setPaystackStatus("");
+          }
+        },
+        onCancel: () => {
+          // User closed the popup. They *might* have actually completed payment
+          // right before closing, so give the poll a short window to catch it
+          // rather than assuming it was cancelled.
+          pollVerifyDeposit(reference, { attempts: 4, delayMs: 3000 });
+        },
+        onError: () => {
+          showToast("Payment could not be completed");
+        },
+      });
+
+      // 3. Start a background safety-net poll right away, independent of the
+      // popup callbacks — covers the case where the tab/app is closed or the
+      // callback silently fails to fire even though payment succeeded.
+      pollVerifyDeposit(reference, { attempts: 6, delayMs: 4000 });
+    } catch (err) {
+      showToast(err.response?.data?.message || "Could not start payment");
+    } finally {
+      setPaystackLoading(false);
     }
   };
 
@@ -627,7 +755,7 @@ const Dashboard = () => {
                 {!depositOpen ? (
                   <>
                     <p className="text-[13px] text-[#6B6B6B] mb-5">
-                      Deposits are confirmed by a treasurer before they clear to your balance.
+                      Pay instantly with Paystack, or log a manual deposit for a treasurer to confirm.
                     </p>
                     <button
                       onClick={() => setDepositOpen(true)}
@@ -661,9 +789,9 @@ const Dashboard = () => {
                         onChange={(e) => setDepositMethod(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] focus:outline-none focus:border-[#96158F]"
                       >
-                        <option value="bank_transfer">Bank transfer</option>
+                        <option value="paystack">Pay now (Card/Bank via Paystack)</option>
+                        <option value="bank_transfer">Bank transfer (manual)</option>
                         <option value="cash">Cash</option>
-                        <option value="card">Card</option>
                         <option value="other">Other</option>
                       </select>
                     </div>
@@ -679,21 +807,57 @@ const Dashboard = () => {
                         className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
                       />
                     </div>
-                    <p className="text-[11px] text-amber-600 flex items-center gap-1.5">
-                      <Clock size={12} />
-                      Deposits are pending until a treasurer confirms them.
-                    </p>
+
+                    {depositMethod === "paystack" ? (
+                      <p className="text-[11px] text-[#6B6B6B] flex items-center gap-1.5">
+                        <Shield size={12} />
+                        Instant — confirmed automatically once payment clears.
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-amber-600 flex items-center gap-1.5">
+                        <Clock size={12} />
+                        Deposits are pending until a treasurer confirms them.
+                      </p>
+                    )}
+
+                    {paystackStatus === "polling" && (
+                      <p className="text-[11px] text-[#96158F] flex items-center gap-1.5">
+                        <RefreshCw size={12} className="animate-spin" />
+                        Confirming your payment…
+                      </p>
+                    )}
+                    {paystackStatus === "confirming" && (
+                      <p className="text-[11px] text-[#96158F] flex items-center gap-1.5">
+                        <RefreshCw size={12} className="animate-spin" />
+                        Finalizing…
+                      </p>
+                    )}
+
                     <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        disabled={depositSubmitting}
-                        className="flex-1 py-2.5 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
-                      >
-                        {depositSubmitting ? "Submitting…" : "Submit"}
-                      </button>
+                      {depositMethod === "paystack" ? (
+                        <button
+                          type="button"
+                          onClick={handlePaystackDeposit}
+                          disabled={paystackLoading || paystackStatus !== ""}
+                          className="flex-1 py-2.5 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
+                        >
+                          {paystackLoading ? "Opening checkout…" : "Pay with Paystack"}
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          disabled={depositSubmitting}
+                          className="flex-1 py-2.5 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
+                        >
+                          {depositSubmitting ? "Submitting…" : "Submit"}
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => setDepositOpen(false)}
+                        onClick={() => {
+                          stopPolling();
+                          setDepositOpen(false);
+                        }}
                         className="px-4 py-2.5 rounded-xl text-[14px] font-medium border border-[#E4E4E4] text-[#111111] hover:bg-[#F7F7F7] transition-colors"
                       >
                         Cancel
