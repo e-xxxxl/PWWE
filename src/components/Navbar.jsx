@@ -205,11 +205,11 @@ const Navbar = () => {
           />
 
           {/* Description */}
-          <p className="text-gray-700 text-base leading-8 mb-12">
+          {/* <p className="text-gray-700 text-base leading-8 mb-12">
             Through human empowerment, cooperative development,
             and enterprise growth, we are raising resilient women
             who are equipped to thrive in every season of life.
-          </p>
+          </p> */}
 
           {/* Address */}
           <div className="flex gap-4 mb-10">

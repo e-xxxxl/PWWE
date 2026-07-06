@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Tamma+2:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -10,9 +10,9 @@
   --color-brand-accent: #CC9838;
   --color-brand-accent-light: #FDF6E8;
   
-  --font-display: "Poppins", serif;
-  --font-sans: "Poppins", sans-serif;
-  --font-mono: "Poppins", serif;
+  --font-display: "Baloo Tamma 2", cursive;
+  --font-sans: "Baloo Tamma 2", sans-serif;
+  --font-mono: "Baloo Tamma 2", cursive;
 }
 
 body {
