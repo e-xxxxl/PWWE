@@ -83,7 +83,7 @@ const Navbar = () => {
               {/* Logo */}
 
               <Link to="/ ">
-              <div className="lg:bg-white lg:p-2">
+              <div className="">
                 <img
                   src={logo}
                   alt="Logo"
