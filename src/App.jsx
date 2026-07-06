@@ -13,13 +13,24 @@ import ScrollToTop from "./components/ScrollToTop.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import AdminLogin from "./components/AdminLogin.jsx";
 
-// Protected Route Component
+// Regular Protected Route for users
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("pwwe_auth_token") || sessionStorage.getItem("pwwe_auth_token");
   
   if (!token) {
-    // Redirect to login if not authenticated
     window.location.href = "/login";
+    return null;
+  }
+  
+  return children;
+};
+
+// Admin Protected Route
+const AdminProtectedRoute = ({ children }) => {
+  const token = sessionStorage.getItem("admin_token");
+  
+  if (!token) {
+    window.location.href = "/admin/login";
     return null;
   }
   
@@ -57,9 +68,9 @@ export default function App() {
         <Route
           path="/admin/dashboard"
           element={
-            <ProtectedRoute>
-              <AdminDashboard/>
-            </ProtectedRoute>
+            <AdminProtectedRoute>
+      <AdminDashboard />
+    </AdminProtectedRoute>
             
           }
         />

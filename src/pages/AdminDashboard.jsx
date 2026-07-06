@@ -27,16 +27,16 @@ api.interceptors.request.use((config) => {
 });
 
 // Handle 401 responses
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 401) {
-//       sessionStorage.clear();
-//       window.location.href = "/admin/login";
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      sessionStorage.clear();
+      window.location.href = "/admin/login";
+    }
+    return Promise.reject(error);
+  }
+);
 // ── Design primitives ─────────────────────────────────────────────────────────
 
 const Card = ({ children, className = "" }) => (
