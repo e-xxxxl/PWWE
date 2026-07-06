@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import PaystackPop from '@paystack/inline-js';
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   LayoutDashboard, Users, PiggyBank, Calendar, Bell, Settings,
@@ -8,6 +8,7 @@ import {
   HandCoins, Lock, Smartphone, Pencil, Check, AlertTriangle,
   Clock, ChevronLeft, ChevronRight, RefreshCw,
 } from "lucide-react";
+import logo from "../../assets/logo.png";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const api = axios.create({
@@ -1279,9 +1280,15 @@ const Dashboard = () => {
           <div className="p-5 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-[#96158F] rounded-full flex items-center justify-center">
-                  <Shield className="text-white" size={16} />
-                </div>
+                <Link to="/ ">
+              <div className="">
+                <img
+                  src={logo}
+                  alt="Logo"
+                  className="h-14 w-auto object-contain"
+                />
+              </div>
+</Link>
                 <div>
                   <h2 className="font-semibold text-[15px] text-white leading-none">PWWE</h2>
                   <p className="text-[10px] text-white/50 tracking-wide uppercase mt-0.5">

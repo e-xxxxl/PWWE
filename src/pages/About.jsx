@@ -57,7 +57,7 @@ const About = () => {
             <p className="text-gray-300 mt-1 sm:mt-2 text-sm sm:text-base">Fill the registration form to get started</p>
           </div>
           <Link
-            to="/register"
+            to="/signup"
             className="bg-white text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold flex items-center gap-2 sm:gap-3 hover:bg-gray-100 transition-colors whitespace-nowrap text-sm sm:text-base"
             style={{ color: "#000" }}
           >

@@ -46,12 +46,8 @@ const Navbar = () => {
               <a href="#">
                 <FaFacebookF className="hover:text-[#96158F] transition" />
               </a>
-              <a href="#">
-                <FaTwitter className="hover:text-[#96158F] transition" />
-              </a>
-              <a href="#">
-                <FaLinkedinIn className="hover:text-[#96158F] transition" />
-              </a>
+             
+              
               <a href="#">
                 <FaInstagram className="hover:text-[#96158F] transition" />
               </a>

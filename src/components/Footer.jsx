@@ -75,7 +75,7 @@ export default function Footer() {
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/cooperative" className="flex items-center gap-2 hover:text-[#96158F] transition-colors">
+                <NavLink to="/signup" className="flex items-center gap-2 hover:text-[#96158F] transition-colors">
                   <ArrowRight size={14} /> PWWE Cooperative
                 </NavLink>
               </li>
@@ -133,15 +133,7 @@ export default function Footer() {
       <Facebook size={20} />
     </a>
 
-    <a 
-      href="https://twitter.com" 
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="w-9 h-9 bg-[#1F1F1F] hover:bg-[#96158F] text-white rounded-full flex items-center justify-center transition-colors"
-      aria-label="Twitter"
-    >
-      <Twitter size={20} />
-    </a>
+    
 
     <a 
       href="https://instagram.com" 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   LayoutDashboard, Users, PiggyBank, HandCoins, BarChart2,
@@ -7,6 +7,7 @@ import {
   ChevronRight, Search, RefreshCw, ChevronDown, Trash2, UserCheck,
   UserX, ShieldCheck, Plus, Clock,
 } from "lucide-react";
+import logo from "../../assets/logo.png";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // In your AdminDashboard.jsx, update axios config
@@ -26,16 +27,16 @@ api.interceptors.request.use((config) => {
 });
 
 // Handle 401 responses
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      sessionStorage.clear();
-      window.location.href = "/admin/login";
-    }
-    return Promise.reject(error);
-  }
-);
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401) {
+//       sessionStorage.clear();
+//       window.location.href = "/admin/login";
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 // ── Design primitives ─────────────────────────────────────────────────────────
 
 const Card = ({ children, className = "" }) => (
@@ -1438,9 +1439,15 @@ useEffect(() => {
           <div className="p-5 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-[#96158F] rounded-full flex items-center justify-center">
-                  <Shield className="text-white" size={16} />
-                </div>
+                  <Link  to="/ ">
+                              <div className="">
+                                <img
+                                  src={logo}
+                                  alt="Logo"
+                                  className="h-14 w-auto object-contain"
+                                />
+                              </div>
+                </Link>
                 <div>
                   <h2 className="font-semibold text-[15px] text-white leading-none">PWWE Admin</h2>
                   <p className="text-[10px] text-white/50 tracking-wide uppercase mt-0.5">

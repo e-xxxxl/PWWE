@@ -84,16 +84,16 @@ const Home = () => {
               </div>
             </div>
 
-            <h1 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-light leading-tight mb-8 sm:mb-12 md:mb-16">
+            {/* <h1 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-light leading-tight mb-8 sm:mb-12 md:mb-16">
               Economic Empowerment
               <br />
               Through Women
               <br />
               Entrepreneurship
-            </h1>
+            </h1> */}
 
-            <p className="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-semibold mb-8 sm:mb-12 md:mb-16">
-              Empowering Women. Transforming Communities
+            <p className="text-white text-base sm:text-lg md:text-3xl lg:text-3xl font-semibold mb-8 sm:mb-12 md:mb-16">
+              Empowering Women. <br /> Transforming Communities
             </p>
 
             <button className="bg-[#7D1DC9] hover:bg-[#96158F] transition-all duration-300 text-white px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-full font-semibold flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
@@ -111,7 +111,7 @@ const Home = () => {
             <p className="text-purple-600 font-medium text-sm sm:text-base md:text-lg tracking-wide">
               Empowering Women To Rise, Thrive, And Prosper.
             </p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mt-2 sm:mt-3">
+            <h2 className="text-xl sm:text-xl md:text-5xl font-bold mt-2 sm:mt-3">
               Three Pathways. One Mission.
             </h2>
           </FadeInSection>
