@@ -20,7 +20,6 @@ const Navbar = () => {
   const navLinks = [
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
-    { name: "Sign Up", path: "/signup" },
   ];
 
   useEffect(() => {
@@ -46,8 +45,7 @@ const Navbar = () => {
               <a href="#">
                 <FaFacebookF className="hover:text-[#96158F] transition" />
               </a>
-             
-              
+
               <a href="#">
                 <FaInstagram className="hover:text-[#96158F] transition" />
               </a>
@@ -79,14 +77,15 @@ const Navbar = () => {
               {/* Logo */}
 
               <Link to="/ ">
-              <div className="">
-                <img
-                  src={logo}
-                  alt="Logo"
-                  className="h-14 w-auto object-contain"
-                />
-              </div>
-</Link>
+                <div className="">
+                  <img
+                    src={logo}
+                    alt="Logo"
+                    className="h-14 w-auto object-contain"
+                  />
+                </div>
+              </Link>
+
               {/* Desktop Links */}
               <div className="hidden lg:flex items-center gap-12 ml-auto">
                 {navLinks.map((link) => (
@@ -114,6 +113,26 @@ const Navbar = () => {
                     )}
                   </NavLink>
                 ))}
+
+                {/* Login */}
+                {/* <NavLink
+                  to="/login"
+                  className={({ isActive }) =>
+                    `font-medium transition ${
+                      isActive ? "text-white" : "text-white/80 hover:text-white"
+                    }`
+                  }
+                >
+                  Login
+                </NavLink> */}
+
+                {/* Sign Up button */}
+                <Link
+                  to="/signup"
+                  className="bg-[#96158F] hover:bg-[#7d1277] text-white font-semibold px-6 py-2.5 rounded-full transition"
+                >
+                  Sign Up / Login 
+                </Link>
               </div>
 
               {/* Desktop Hamburger */}
@@ -158,6 +177,26 @@ const Navbar = () => {
                     {link.name}
                   </NavLink>
                 ))}
+
+                <NavLink
+                  to="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-[#96158F]"
+                      : "text-white hover:text-[#96158F]"
+                  }
+                >
+                  Login
+                </NavLink>
+
+                <Link
+                  to="/signup"
+                  onClick={() => setMenuOpen(false)}
+                  className="bg-[#96158F] hover:bg-[#7d1277] text-white font-semibold text-center px-6 py-2.5 rounded-full transition"
+                >
+                  Sign Up
+                </Link>
               </div>
             </div>
           </div>
@@ -168,9 +207,7 @@ const Navbar = () => {
       <div
         onClick={() => setMenuOpen(false)}
         className={`hidden lg:block fixed inset-0 bg-black/60 z-[90] transition-all duration-500 ${
-          menuOpen
-            ? "opacity-100 visible"
-            : "opacity-0 invisible"
+          menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       />
 
@@ -194,18 +231,7 @@ const Navbar = () => {
 
         <div className="px-8 pt-16 pb-10">
           {/* Logo */}
-          <img
-            src={logo}
-            alt="Logo"
-            className="w-28 mb-10"
-          />
-
-          {/* Description */}
-          {/* <p className="text-gray-700 text-base leading-8 mb-12">
-            Through human empowerment, cooperative development,
-            and enterprise growth, we are raising resilient women
-            who are equipped to thrive in every season of life.
-          </p> */}
+          <img src={logo} alt="Logo" className="w-28 mb-10" />
 
           {/* Address */}
           <div className="flex gap-4 mb-10">
@@ -216,9 +242,7 @@ const Navbar = () => {
                 2nd Floor, ACNE Building,
               </h3>
 
-              <p className="text-gray-500">
-                Dugbe, Ibadan, Oyo State.
-              </p>
+              <p className="text-gray-500">Dugbe, Ibadan, Oyo State.</p>
             </div>
           </div>
 
@@ -231,9 +255,7 @@ const Navbar = () => {
                 Call Us: (+234) 703 127 5688
               </h3>
 
-              <p className="text-gray-500">
-                (+234) 905 616 1787
-              </p>
+              <p className="text-gray-500">(+234) 905 616 1787</p>
             </div>
           </div>
 
@@ -246,9 +268,7 @@ const Navbar = () => {
                 Monday - Friday
               </h3>
 
-              <p className="text-gray-500">
-                (8am - 5pm)
-              </p>
+              <p className="text-gray-500">(8am - 5pm)</p>
             </div>
           </div>
 
@@ -262,15 +282,33 @@ const Navbar = () => {
                   onClick={() => setMenuOpen(false)}
                   className={({ isActive }) =>
                     `text-lg font-medium transition ${
-                      isActive
-                        ? "text-[#96158F]"
-                        : "text-gray-700 hover:text-[#96158F]"
+                      isActive ? "text-[#96158F]" : "text-gray-700 hover:text-[#96158F]"
                     }`
                   }
                 >
                   {link.name}
                 </NavLink>
               ))}
+
+              <NavLink
+                to="/login"
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) =>
+                  `text-lg font-medium transition ${
+                    isActive ? "text-[#96158F]" : "text-gray-700 hover:text-[#96158F]"
+                  }`
+                }
+              >
+                Login
+              </NavLink>
+
+              <Link
+                to="/signup"
+                onClick={() => setMenuOpen(false)}
+                className="bg-[#96158F] hover:bg-[#7d1277] text-white font-semibold text-center px-6 py-2.5 rounded-full transition"
+              >
+                Sign Up
+              </Link>
             </div>
           </div>
         </div>

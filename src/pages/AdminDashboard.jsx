@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, PiggyBank, HandCoins, BarChart2,
   Bell, LogOut, Menu, X, Shield, Check, AlertTriangle, ChevronLeft,
   ChevronRight, Search, RefreshCw, ChevronDown, Trash2, UserCheck,
-  UserX, ShieldCheck, Plus, Clock,
+  UserX, ShieldCheck, Plus, Clock,Download,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -329,6 +329,51 @@ useEffect(() => {
     },
     [userSearch, userRoleFilter, userStatusFilter]
   );
+
+  const handleExportSavings = async () => {
+  try {
+    const response = await api.get('/admin/reports/savings/export', {
+      responseType: 'blob'
+    });
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `savings-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    showToast('Savings report exported successfully');
+  } catch (error) {
+    console.error('Export savings error:', error);
+    showToast('Failed to export savings report', 'error');
+  }
+};
+
+const handleExportContributions = async () => {
+  try {
+    const response = await api.get('/admin/reports/contributions/export', {
+      responseType: 'blob'
+    });
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `contribution-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    showToast('Contribution report exported successfully');
+  } catch (error) {
+    console.error('Export contribution error:', error);
+    showToast('Failed to export contribution report', 'error');
+  }
+};
+
 
   const fetchTransactions = useCallback(
     async (page = 1) => {
@@ -972,7 +1017,7 @@ useEffect(() => {
                       type="text"
                       value={createTxForm.userId}
                       onChange={(e) => setCreateTxForm((f) => ({ ...f, userId: e.target.value }))}
-                      placeholder="MongoDB ObjectId of the member"
+                      placeholder="Member Coop ID of the member"
                       required
                     />
                   </div>
@@ -1221,19 +1266,35 @@ useEffect(() => {
         );
 
       // ── Reports ─────────────────────────────────────────────────────────────
-      case "reports":
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg text-[#111111]">Summary report</h3>
-              <button
-                onClick={fetchStats}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium border border-[#E4E4E4] text-[#111111] hover:bg-[#F7F7F7] transition-colors"
-              >
-                <RefreshCw size={13} />
-                Refresh
-              </button>
-            </div>
+   case "reports":
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-lg text-[#111111]">Summary report</h3>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportSavings}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] transition-colors"
+          >
+            <Download size={13} />
+            Export Savings
+          </button>
+          <button
+            onClick={handleExportContributions}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium bg-[#111111] text-white hover:bg-[#333333] transition-colors"
+          >
+            <Download size={13} />
+            Export Contributions
+          </button>
+          <button
+            onClick={fetchStats}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium border border-[#E4E4E4] text-[#111111] hover:bg-[#F7F7F7] transition-colors"
+          >
+            <RefreshCw size={13} />
+            Refresh
+          </button>
+        </div>
+      </div>
 
             {!report ? (
               <SectionLoader />

@@ -73,7 +73,7 @@ const Home = () => {
 
         <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-12">
           <FadeInSection direction="up" className="max-w-xl">
-            <div className="mb-4 sm:mb-8">
+            {/* <div className="mb-4 sm:mb-8">
               <div className="flex gap-3 sm:gap-5 mb-2 sm:mb-4">
                 <div className="w-0 h-0 border-t-[10px] sm:border-t-[14px] border-b-[10px] sm:border-b-[14px] border-l-[18px] sm:border-l-[24px] border-t-transparent border-b-transparent border-l-[#62C11A]"></div>
                 <div className="w-0 h-0 border-t-[10px] sm:border-t-[14px] border-b-[10px] sm:border-b-[14px] border-l-[18px] sm:border-l-[24px] border-t-transparent border-b-transparent border-l-[#62C11A]"></div>
@@ -82,7 +82,7 @@ const Home = () => {
                 <div className="w-0 h-0 border-t-[6px] sm:border-t-[8px] border-b-[6px] sm:border-b-[8px] border-l-[10px] sm:border-l-[14px] border-t-transparent border-b-transparent border-l-[#62C11A]"></div>
                 <div className="w-1 h-1 bg-[#ff00ff] rounded-full"></div>
               </div>
-            </div>
+            </div> */}
 
             {/* <h1 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-light leading-tight mb-8 sm:mb-12 md:mb-16">
               Economic Empowerment
@@ -92,7 +92,7 @@ const Home = () => {
               Entrepreneurship
             </h1> */}
 
-            <p className="text-white text-base sm:text-lg md:text-3xl lg:text-3xl font-semibold mb-8 sm:mb-12 md:mb-16">
+            <p className="text-white text-base sm:text-lg md:text-2xl lg:text-2xl font-semibold mb-8 sm:mb-12 md:mb-16">
               Empowering Women. <br /> Transforming Communities
             </p>
 
@@ -116,32 +116,36 @@ const Home = () => {
             </h2>
           </FadeInSection>
 
-          <div className="grid md:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
-            <FadeInSection direction="up" delay={0} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 hover:shadow-md transition-shadow">
-              <h3 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6 tracking-wide">HUMAN EMPOWERMENT</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                Many women carry incredible potential but lack the knowledge, support,
-                opportunities, or guidance needed to thrive.
-              </p>
-            </FadeInSection>
+         <div className="bg-gray-50 py-12 sm:py-16 md:py-20">
+  <div className="container mx-auto px-4 sm:px-6">
+    <div className="grid md:grid-cols-3 gap-6 sm:gap-8 md:gap-10">
+      <FadeInSection direction="up" delay={0} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 hover:shadow-md transition-shadow">
+        <h3 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6 tracking-wide">HUMAN EMPOWERMENT</h3>
+        <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+          Many women carry incredible potential but lack the knowledge, support,
+          opportunities, or guidance needed to thrive.
+        </p>
+      </FadeInSection>
 
-            <FadeInSection direction="up" delay={150} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 hover:shadow-md transition-shadow">
-              <h3 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6 tracking-wide">COOPERATIVE EMPOWERMENT</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                Our Cooperative Society empowers women to grow wealth together through
-                structured savings, responsible lending, financial education, and collective
-                support.
-              </p>
-            </FadeInSection>
+      <FadeInSection direction="up" delay={150} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 hover:shadow-md transition-shadow">
+        <h3 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6 tracking-wide">COOPERATIVE EMPOWERMENT</h3>
+        <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+          Our Cooperative Society empowers women to grow wealth together through
+          structured savings, responsible lending, financial education, and collective
+          support.
+        </p>
+      </FadeInSection>
 
-            <FadeInSection direction="up" delay={300} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 hover:shadow-md transition-shadow">
-              <h3 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6 tracking-wide">BUSINESS DEVELOPMENT</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                We help women transform skills, talents, and passions into sustainable businesses
-                through entrepreneurship training, business mentoring, networking opportunities.
-              </p>
-            </FadeInSection>
-          </div>
+      <FadeInSection direction="up" delay={300} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 hover:shadow-md transition-shadow">
+        <h3 className="font-bold text-base sm:text-lg md:text-xl mb-4 sm:mb-6 tracking-wide">BUSINESS DEVELOPMENT</h3>
+        <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+          We help women transform skills, talents, and passions into sustainable businesses
+          through entrepreneurship training, business mentoring, networking opportunities.
+        </p>
+      </FadeInSection>
+    </div>
+  </div>
+</div>
         </div>
       </section>
 
