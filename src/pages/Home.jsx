@@ -20,6 +20,7 @@ import leftBanner from "../../assets/left-banner.png";     // ← Update with yo
 import rightBanner from "../../assets/right-banner.png";   // ← Update with your actual filename
 
 import FadeInSection from "../components/FadeInSection"; // ← adjust path if needed
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -95,11 +96,12 @@ const Home = () => {
             <p className="text-white text-base sm:text-lg md:text-2xl lg:text-2xl font-semibold mb-8 sm:mb-12 md:mb-16">
               Empowering Women. <br /> Transforming Communities
             </p>
-
+              <Link to="/signup">
             <button className="bg-[#7D1DC9] hover:bg-[#96158F] transition-all duration-300 text-white px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-full font-semibold flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
               Join The Cooperative
               <FaChevronRight size={14} />
             </button>
+              </Link>
           </FadeInSection>
         </div>
       </section>

@@ -157,7 +157,7 @@ const SignUp = () => {
               <User className="text-white" size={32} />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900">Join Our Movement</h1>
+          <h1 className="text-4xl font-bold text-gray-900">Join Our Cooperative</h1>
           <p className="text-gray-600 mt-3 text-lg">
             Create an account and become part of women transforming communities
           </p>

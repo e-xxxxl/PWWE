@@ -252,10 +252,10 @@ const Navbar = () => {
 
             <div>
               <h3 className="font-semibold text-lg text-gray-800 underline">
-                Call Us: (+234) 703 127 5688
+                Call Us: (+234) 903 146 3004
               </h3>
 
-              <p className="text-gray-500">(+234) 905 616 1787</p>
+              <p className="text-gray-500">(+234) 903 146 3004</p> 
             </div>
           </div>
 
