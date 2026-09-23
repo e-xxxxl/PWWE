@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Download, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import FadeInSection from "../components/FadeInSection"; // ← adjust path if needed
 
 const About = () => {
@@ -53,16 +53,20 @@ const About = () => {
         {/* Call to Action Banner */}
         <FadeInSection className="bg-black text-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 mb-12 sm:mb-16 md:mb-20">
           <div className="text-center md:text-left">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold">Want to be part of PWWEF?</h3>
-            <p className="text-gray-300 mt-1 sm:mt-2 text-sm sm:text-base">Fill the registration form to get started</p>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold">
+              Want to be a part of our PWW Cooperative Multipurpose Society?
+            </h3>
+            <p className="text-gray-300 mt-1 sm:mt-2 text-sm sm:text-base">
+              Join today and start saving, borrowing and building with us.
+            </p>
           </div>
           <Link
             to="/signup"
-            className="bg-white text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold flex items-center gap-2 sm:gap-3 hover:bg-gray-100 transition-colors whitespace-nowrap text-sm sm:text-base"
+            className="bg-white text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold flex items-center gap-2 sm:gap-3 hover:bg-gray-100 transition-colors whitespace-nowrap text-sm sm:text-base uppercase tracking-wide"
             style={{ color: "#000" }}
           >
-            <Download size={18} className="sm:size-20" />
-            Download the Form
+            Join the Cooperative
+            <ArrowRight size={18} className="sm:size-20" />
           </Link>
         </FadeInSection>
 
@@ -112,14 +116,11 @@ const About = () => {
               <p className="text-sm sm:text-base md:text-lg leading-relaxed mb-4 sm:mb-6 md:mb-8">
                 We believe in empowerment, not dependency. Everything we do is built around building capacity, not handing out charity. Our programs are delivered through local Women Empowerment Hubs, anchored by grassroots leadership teams who understand their communities from the inside.
               </p>
-              <p className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base md:text-lg">We operate with six core principles:</p>
+              <p className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base md:text-lg">Our cooperative society operates with these core principles:</p>
               <ol className="space-y-2 sm:space-y-3 text-sm sm:text-[15px] md:text-base list-decimal pl-4 sm:pl-5">
-                <li>Integrity & Accountability: transparent, ethical operations at every level.</li>
-                <li>Community Ownership: local leadership and cultural sensitivity.</li>
-                <li>Empowerment, not Dependency: capacity building that lasts.</li>
-                <li>Sustainability: cooperative models and strategic partnerships.</li>
-                <li>Inclusion & Dignity: respect for women of all backgrounds.</li>
-                <li>Excellence & Impact: measurable outcomes, quality delivery.</li>
+                <li>Open &amp; Voluntary Membership: Anyone who meets the requirements can join freely.</li>
+                <li>Democratic Member Control: Members have an equal voice in decision-making.</li>
+                <li>Autonomous &amp; Independent: The cooperative operates independently and is controlled by its members.</li>
               </ol>
             </div>
           </FadeInSection>

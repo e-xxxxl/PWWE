@@ -59,7 +59,7 @@ export default function Contact() {
             <Phone className="text-white" size={20} />
           </div>
           <div>
-            <p className="font-semibold text-sm sm:text-base">Call for help:</p>
+            <p className="font-semibold text-sm sm:text-base">Call Us:</p>
             <a href="tel:+2349031463004" className="text-gray-600 text-xs sm:text-sm mt-1 hover:text-[#96158F] block">
               +234 903 146 3004
             </a>

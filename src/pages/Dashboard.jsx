@@ -6,7 +6,8 @@ import {
   LayoutDashboard, Users, PiggyBank, Calendar, Bell, Settings,
   LogOut, Menu, X, User, Mail, Phone, Shield, Plus, History,
   HandCoins, Lock, Smartphone, Pencil, Check, AlertTriangle,
-  Clock, ChevronLeft, ChevronRight, RefreshCw,
+  Clock, ChevronLeft, ChevronRight, RefreshCw, Landmark, Copy,
+  Paperclip, FileText,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -15,6 +16,14 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
+
+// Paystack isn't live yet — members pay by bank transfer and upload proof
+// of payment for a treasurer to confirm.
+const BANK_DETAILS = {
+  bank: "Wema Bank",
+  accountNumber: "0127436067",
+  accountName: "Power Within Women Empowerment Foundation",
+};
 
 // Add token to requests
 api.interceptors.request.use((config) => {
@@ -152,9 +161,12 @@ const Dashboard = () => {
   // Forms
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState("");
-  const [depositMethod, setDepositMethod] = useState("paystack");
+  // Paystack isn't live yet, so manual bank transfer is the default.
+  const [depositMethod, setDepositMethod] = useState("bank_transfer");
   const [depositNote, setDepositNote] = useState("");
   const [depositSubmitting, setDepositSubmitting] = useState(false);
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [copiedField, setCopiedField] = useState("");
 
   // Paystack-specific state
   const [paystackLoading, setPaystackLoading] = useState(false);
@@ -178,6 +190,16 @@ const Dashboard = () => {
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(""), 2600);
+  };
+
+  const copyToClipboard = async (text, field) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(""), 2000);
+    } catch {
+      showToast("Could not copy — please copy it manually");
+    }
   };
 
   // ── Auth / profile ─────────────────────────────────────────────────────────
@@ -303,17 +325,28 @@ const Dashboard = () => {
     e.preventDefault();
     const amount = parseFloat(depositAmount.replace(/[^0-9.]/g, ""));
     if (!amount || amount <= 0) return showToast("Enter a valid amount");
+    if (depositMethod === "bank_transfer" && !receiptFile) {
+      return showToast("Upload your payment receipt to continue");
+    }
+
     setDepositSubmitting(true);
     try {
-      await api.post("/member/savings/deposit", {
-        amount,
-        method: depositMethod,
-        note: depositNote || undefined,
+      const formData = new FormData();
+      formData.append("amount", amount);
+      formData.append("method", depositMethod);
+      if (depositNote) formData.append("note", depositNote);
+      if (receiptFile) formData.append("receipt", receiptFile);
+
+      await api.post("/member/savings/deposit", formData, {
+        // Drop the instance's default JSON header so the browser can set
+        // multipart/form-data with the correct boundary itself.
+        headers: { "Content-Type": undefined },
       });
       showToast("Deposit submitted — awaiting confirmation");
       setDepositOpen(false);
       setDepositAmount("");
       setDepositNote("");
+      setReceiptFile(null);
       fetchSavingsBalance();
       fetchSavingsHistory();
     } catch (err) {
@@ -730,6 +763,19 @@ const Dashboard = () => {
                             </p>
                             <p className="text-[11px] text-[#6B6B6B] tabular-nums">
                               {fmtDate(tx.createdAt)}
+                              {tx.receiptUrl && (
+                                <>
+                                  {" · "}
+                                  <a
+                                    href={tx.receiptUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#96158F] hover:underline"
+                                  >
+                                    View receipt
+                                  </a>
+                                </>
+                              )}
                             </p>
                           </div>
                           <StatusBadge status={tx.status} />
@@ -756,7 +802,7 @@ const Dashboard = () => {
                 {!depositOpen ? (
                   <>
                     <p className="text-[13px] text-[#6B6B6B] mb-5">
-                      Pay instantly with Paystack, or log a manual deposit for a treasurer to confirm.
+                      Pay by bank transfer and upload your receipt — a treasurer confirms it shortly after.
                     </p>
                     <button
                       onClick={() => setDepositOpen(true)}
@@ -790,12 +836,85 @@ const Dashboard = () => {
                         onChange={(e) => setDepositMethod(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] focus:outline-none focus:border-[#96158F]"
                       >
-                        <option value="paystack">Pay now (Card/Bank via Paystack)</option>
-                        <option value="bank_transfer">Bank transfer (manual)</option>
+                        <option value="bank_transfer">Bank transfer</option>
                         <option value="cash">Cash</option>
                         <option value="other">Other</option>
+                        <option value="paystack" disabled>
+                          Pay now via Paystack (coming soon)
+                        </option>
                       </select>
                     </div>
+
+                    {depositMethod === "bank_transfer" && (
+                      <div className="rounded-xl border border-[#E4E4E4] bg-[#FAFAFA] p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-[12px] font-semibold text-[#111111] uppercase tracking-wide">
+                          <Landmark size={14} className="text-[#96158F]" />
+                          Transfer to this account
+                        </div>
+                        {[
+                          { label: "Bank", value: BANK_DETAILS.bank, field: "bank" },
+                          { label: "Account number", value: BANK_DETAILS.accountNumber, field: "accountNumber" },
+                          { label: "Account name", value: BANK_DETAILS.accountName, field: "accountName" },
+                        ].map((row) => (
+                          <div key={row.field} className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[10px] text-[#6B6B6B] uppercase tracking-wide">{row.label}</p>
+                              <p className="text-[13px] font-medium text-[#111111]">{row.value}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(row.value, row.field)}
+                              className="p-1.5 rounded-lg text-[#6B6B6B] hover:text-[#96158F] hover:bg-white transition-colors flex-shrink-0"
+                              aria-label={`Copy ${row.label}`}
+                            >
+                              {copiedField === row.field ? (
+                                <Check size={14} className="text-green-600" />
+                              ) : (
+                                <Copy size={14} />
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                        <p className="text-[11px] text-[#6B6B6B]">
+                          Make the transfer, then upload your receipt below.
+                        </p>
+                      </div>
+                    )}
+
+                    {(depositMethod === "bank_transfer" || depositMethod === "cash" || depositMethod === "other") && (
+                      <div>
+                        <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                          Payment receipt{depositMethod === "bank_transfer" ? "" : " (optional)"}
+                        </label>
+                        <label className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-dashed border-[#E4E4E4] text-[13px] text-[#6B6B6B] hover:border-[#96158F] hover:text-[#96158F] cursor-pointer transition-colors">
+                          <Paperclip size={14} />
+                          <span className="truncate">
+                            {receiptFile ? receiptFile.name : "Upload a photo or PDF of your receipt"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                            className="hidden"
+                            onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                          />
+                        </label>
+                        {receiptFile && (
+                          <div className="flex items-center justify-between mt-1.5">
+                            <p className="text-[11px] text-[#6B6B6B] flex items-center gap-1">
+                              <FileText size={11} /> {(receiptFile.size / 1024).toFixed(0)} KB
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setReceiptFile(null)}
+                              className="text-[11px] text-[#96158F] hover:underline"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div>
                       <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
                         Note (optional)
@@ -858,6 +977,7 @@ const Dashboard = () => {
                         onClick={() => {
                           stopPolling();
                           setDepositOpen(false);
+                          setReceiptFile(null);
                         }}
                         className="px-4 py-2.5 rounded-xl text-[14px] font-medium border border-[#E4E4E4] text-[#111111] hover:bg-[#F7F7F7] transition-colors"
                       >

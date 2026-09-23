@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, PiggyBank, HandCoins, BarChart2,
   Bell, LogOut, Menu, X, Shield, Check, AlertTriangle, ChevronLeft,
   ChevronRight, Search, RefreshCw, ChevronDown, Trash2, UserCheck,
-  UserX, ShieldCheck, Plus, Clock,Download,
+  UserX, ShieldCheck, Plus, Clock,Download, Eye,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -1101,10 +1101,10 @@ const handleExportContributions = async () => {
               ) : (
                 <>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[640px]">
+                    <table className="w-full min-w-[760px]">
                       <thead>
                         <tr className="text-left">
-                          {["Member", "Category", "Type", "Method", "Amount", "Status", "Date", "Actions"].map((h) => (
+                          {["Member", "Category", "Type", "Method", "Receipt", "Amount", "Status", "Date", "Actions"].map((h) => (
                             <th key={h} className="text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-wide pb-3 pr-4">
                               {h}
                             </th>
@@ -1123,6 +1123,20 @@ const handleExportContributions = async () => {
                             <td className="py-3 pr-4 text-[13px] text-[#111111] capitalize">{tx.category}</td>
                             <td className="py-3 pr-4 text-[13px] text-[#111111] capitalize">{tx.type}</td>
                             <td className="py-3 pr-4 text-[13px] text-[#6B6B6B] capitalize">{tx.method?.replace("_", " ")}</td>
+                            <td className="py-3 pr-4">
+                              {tx.receiptUrl ? (
+                                <a
+                                  href={tx.receiptUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#96158F] hover:underline"
+                                >
+                                  <Eye size={12} /> View
+                                </a>
+                              ) : (
+                                <span className="text-[12px] text-[#6B6B6B]">—</span>
+                              )}
+                            </td>
                             <td className="py-3 pr-4 text-[13px] font-semibold text-[#111111] tabular-nums">
                               {fmtCurrency(tx.amount)}
                             </td>

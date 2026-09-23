@@ -330,11 +330,21 @@ const SignUp = () => {
                 />
                 <p className="text-sm text-gray-600">
                   I agree to the{" "}
-                  <Link to="/terms" className="text-[#96158F] hover:underline">
-                    Terms of Service
+                  <Link
+                    to="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#96158F] hover:underline"
+                  >
+                    Terms &amp; Conditions
                   </Link>{" "}
                   and{" "}
-                  <Link to="/privacy" className="text-[#96158F] hover:underline">
+                  <Link
+                    to="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#96158F] hover:underline"
+                  >
                     Privacy Policy
                   </Link>
                 </p>

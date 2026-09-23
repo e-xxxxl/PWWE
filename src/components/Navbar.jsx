@@ -41,7 +41,7 @@ const Navbar = () => {
         {/* Top Bar */}
         <div className="bg-black text-white text-sm hidden lg:block">
           <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-3">
-            <div className="flex items-center gap-5">
+            {/* <div className="flex items-center gap-5">
               <a href="#">
                 <FaFacebookF className="hover:text-[#96158F] transition" />
               </a>
@@ -49,7 +49,7 @@ const Navbar = () => {
               <a href="#">
                 <FaInstagram className="hover:text-[#96158F] transition" />
               </a>
-            </div>
+            </div> */}
 
             <div className="flex items-center gap-8">
               <div className="flex items-center gap-2">

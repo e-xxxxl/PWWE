@@ -226,7 +226,7 @@ const Home = () => {
                   <FaPhone />
                 </div>
                 <div>
-                  <p className="font-semibold uppercase tracking-wider mb-1 text-xs sm:text-sm">CALL FOR HELP:</p>
+                  <p className="font-semibold uppercase tracking-wider mb-1 text-xs sm:text-sm">CALL US:</p>
                   <p className="text-sm sm:text-base">+234 903 146 3004</p>
                 </div>
               </div>
