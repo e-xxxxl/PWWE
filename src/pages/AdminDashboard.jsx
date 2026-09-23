@@ -10,6 +10,14 @@ import {
 import logo from "../../assets/logo.png";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+const PAYMENT_PURPOSE_LABELS = {
+  shares: "Shares",
+  loan_repayment: "Loan repayment",
+  savings: "Savings",
+  other: "Other",
+  registration: "Registration fee",
+};
+
 // In your AdminDashboard.jsx, update axios config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -734,7 +742,12 @@ useEffect(() => {
                     Shares &amp; other payments
                   </p>
                   <p className="font-semibold text-[26px] text-[#111111] leading-none mb-1">
-                    {fmtCurrency((report.payments?.shares || 0) + (report.payments?.other || 0))}
+                    {fmtCurrency(
+                      (report.payments?.shares || 0) +
+                        (report.payments?.loanRepayment || 0) +
+                        (report.payments?.savings || 0) +
+                        (report.payments?.other || 0)
+                    )}
                   </p>
                   <p className="text-[12px] text-[#6B6B6B]">Total collected</p>
                   <p className="text-[12px] text-amber-600 mt-3 flex items-center gap-1">
@@ -1018,7 +1031,9 @@ useEffect(() => {
                   <Select value={txPurposeFilter} onChange={(e) => setTxPurposeFilter(e.target.value)}>
                     <option value="">All purposes</option>
                     <option value="shares">Shares</option>
-                    <option value="other">Other payment</option>
+                    <option value="loan_repayment">Loan repayment</option>
+                    <option value="savings">Savings</option>
+                    <option value="other">Other</option>
                     <option value="registration">Registration fee</option>
                   </Select>
                   <button
@@ -1072,7 +1087,9 @@ useEffect(() => {
                     <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">Purpose</label>
                     <Select className="w-full" value={createTxForm.paymentPurpose} onChange={(e) => setCreateTxForm((f) => ({ ...f, paymentPurpose: e.target.value }))}>
                       <option value="shares">Shares</option>
-                      <option value="other">Other payment</option>
+                      <option value="loan_repayment">Loan repayment</option>
+                      <option value="savings">Savings</option>
+                      <option value="other">Other</option>
                       <option value="registration">Registration fee</option>
                     </Select>
                   </div>
@@ -1160,13 +1177,9 @@ useEffect(() => {
                             </td>
                             <td className="py-3 pr-4">
                               <p className="text-[13px] text-[#111111] capitalize">
-                                {tx.paymentPurpose === "registration"
-                                  ? "Registration fee"
-                                  : tx.paymentPurpose === "other"
-                                  ? "Other payment"
-                                  : tx.category === "contribution"
+                                {tx.category === "contribution" && !tx.paymentPurpose
                                   ? "Contribution"
-                                  : "Shares"}
+                                  : PAYMENT_PURPOSE_LABELS[tx.paymentPurpose] || "Shares"}
                               </p>
                               {tx.paymentPurpose === "other" && tx.note && (
                                 <p className="text-[11px] text-[#6B6B6B] truncate max-w-[160px]">{tx.note}</p>
@@ -1307,19 +1320,6 @@ useEffect(() => {
                             {loan.guarantorName && (
                               <p className="text-[12px] text-[#6B6B6B] mt-0.5">
                                 Guarantor: {loan.guarantorName} ({loan.guarantorMembershipId})
-                                {loan.guarantorIdUrl && (
-                                  <>
-                                    {" · "}
-                                    <a
-                                      href={loan.guarantorIdUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-[#96158F] hover:underline"
-                                    >
-                                      View ID
-                                    </a>
-                                  </>
-                                )}
                               </p>
                             )}
                             <p className="text-[11px] text-[#6B6B6B] mt-0.5">
@@ -1441,6 +1441,8 @@ useEffect(() => {
                     <div className="space-y-2">
                       {[
                         { label: "Shares", value: fmtCurrency(report.payments?.shares) },
+                        { label: "Loan repayments", value: fmtCurrency(report.payments?.loanRepayment) },
+                        { label: "Savings", value: fmtCurrency(report.payments?.savings) },
                         { label: "Other payments", value: fmtCurrency(report.payments?.other) },
                         { label: "Registration fees", value: fmtCurrency(report.payments?.registration) },
                       ].map((r) => (

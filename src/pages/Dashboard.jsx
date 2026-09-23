@@ -25,6 +25,15 @@ const BANK_DETAILS = {
   accountName: "Power Within Women Empowerment Foundation",
 };
 
+// What a member's deposit is for — "registration" isn't in this list since
+// it's only reachable via the locked Registration fee flow, never picked here.
+const DEPOSIT_PURPOSE_OPTIONS = [
+  { id: "shares", label: "Shares" },
+  { id: "loan_repayment", label: "Loan repayment" },
+  { id: "savings", label: "Savings" },
+  { id: "other", label: "Other" },
+];
+
 // Add token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("pwwe_auth_token") || sessionStorage.getItem("pwwe_auth_token");
@@ -184,7 +193,6 @@ const Dashboard = () => {
     guarantorMembershipId: "",
   });
   const [loanSubmitting, setLoanSubmitting] = useState(false);
-  const [guarantorIdFile, setGuarantorIdFile] = useState(null);
 
   const [profileForm, setProfileForm] = useState({
     name: "",
@@ -437,34 +445,20 @@ const Dashboard = () => {
               </div>
             ) : (
               <div>
-                <p className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
                   What is this for?
-                </p>
-                <div className="flex gap-2">
-                  {[
-                    { id: "shares", label: "Shares" },
-                    { id: "other", label: "Other payment" },
-                  ].map((opt) => (
-                    <label
-                      key={opt.id}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-[13px] font-medium cursor-pointer transition-colors ${
-                        depositPurpose === opt.id
-                          ? "border-[#96158F] bg-[#96158F]/5 text-[#96158F]"
-                          : "border-[#E4E4E4] text-[#6B6B6B] hover:bg-[#F7F7F7]"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="depositPurpose"
-                        value={opt.id}
-                        checked={depositPurpose === opt.id}
-                        onChange={() => setDepositPurpose(opt.id)}
-                        className="accent-[#96158F]"
-                      />
+                </label>
+                <select
+                  value={depositPurpose}
+                  onChange={(e) => setDepositPurpose(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] focus:outline-none focus:border-[#96158F]"
+                >
+                  {DEPOSIT_PURPOSE_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
                       {opt.label}
-                    </label>
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
             )}
             <div>
@@ -775,20 +769,15 @@ const Dashboard = () => {
     if (!loanForm.guarantorMembershipId.trim()) return showToast("Enter your guarantor's membership ID");
     setLoanSubmitting(true);
     try {
-      const formData = new FormData();
-      formData.append("amount", amount);
-      formData.append("purpose", loanForm.purpose.trim());
-      formData.append("termMonths", loanForm.termMonths);
-      formData.append("guarantorName", loanForm.guarantorName.trim());
-      formData.append("guarantorMembershipId", loanForm.guarantorMembershipId.trim());
-      if (guarantorIdFile) formData.append("guarantorId", guarantorIdFile);
-
-      await api.post("/member/loans", formData, {
-        headers: { "Content-Type": undefined },
+      await api.post("/member/loans", {
+        amount,
+        purpose: loanForm.purpose.trim(),
+        termMonths: loanForm.termMonths,
+        guarantorName: loanForm.guarantorName.trim(),
+        guarantorMembershipId: loanForm.guarantorMembershipId.trim(),
       });
       showToast("Loan application submitted");
       setLoanForm({ amount: "", purpose: "", termMonths: 3, guarantorName: "", guarantorMembershipId: "" });
-      setGuarantorIdFile(null);
       fetchLoans();
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to submit loan application");
@@ -1170,19 +1159,6 @@ const Dashboard = () => {
                             {loan.guarantorName && (
                               <p className="text-[11px] text-[#6B6B6B] mt-0.5">
                                 Guarantor: {loan.guarantorName} ({loan.guarantorMembershipId})
-                                {loan.guarantorIdUrl && (
-                                  <>
-                                    {" · "}
-                                    <a
-                                      href={loan.guarantorIdUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-[#96158F] hover:underline"
-                                    >
-                                      View ID
-                                    </a>
-                                  </>
-                                )}
                               </p>
                             )}
                             {loan.reviewNote && (
@@ -1257,37 +1233,6 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
-                    Guarantor's membership ID (upload — optional)
-                  </label>
-                  <label className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-dashed border-[#E4E4E4] text-[13px] text-[#6B6B6B] hover:border-[#96158F] hover:text-[#96158F] cursor-pointer transition-colors">
-                    <Paperclip size={14} />
-                    <span className="truncate">
-                      {guarantorIdFile ? guarantorIdFile.name : "Upload a photo of the guarantor's membership ID"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
-                      className="hidden"
-                      onChange={(e) => setGuarantorIdFile(e.target.files?.[0] || null)}
-                    />
-                  </label>
-                  {guarantorIdFile && (
-                    <div className="flex items-center justify-between mt-1.5">
-                      <p className="text-[11px] text-[#6B6B6B] flex items-center gap-1">
-                        <FileText size={11} /> {(guarantorIdFile.size / 1024).toFixed(0)} KB
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setGuarantorIdFile(null)}
-                        className="text-[11px] text-[#96158F] hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div>
                   <p className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
                     Repayment period
                   </p>
@@ -1309,7 +1254,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <p className="text-[11px] text-[#6B6B6B]">
-                  Requires 3+ cleared monthly savings to be eligible.
+                  Requires 6+ cleared monthly savings to be eligible.
                 </p>
                 <button
                   type="submit"
