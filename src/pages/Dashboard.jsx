@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   LayoutDashboard, Users, PiggyBank, Calendar, Bell, Settings,
-  LogOut, Menu, X, User, Mail, Phone, Shield, Plus, History,
+  LogOut, Menu, X, User, Mail, Phone, Shield, Plus,
   HandCoins, Lock, Smartphone, Pencil, Check, AlertTriangle,
   Clock, ChevronLeft, ChevronRight, RefreshCw, Landmark, Copy,
   Paperclip, FileText,
@@ -148,8 +148,6 @@ const Dashboard = () => {
   const [savingsData, setSavingsData] = useState(null);
   const [savingsHistory, setSavingsHistory] = useState([]);
   const [savingsPagination, setSavingsPagination] = useState({ page: 1, pages: 1 });
-  const [contributions, setContributions] = useState([]);
-  const [contribPagination, setContribPagination] = useState({ page: 1, pages: 1 });
   const [loans, setLoans] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -167,6 +165,10 @@ const Dashboard = () => {
   const [depositSubmitting, setDepositSubmitting] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
   const [copiedField, setCopiedField] = useState("");
+  // "shares" | "other" | "registration" — what the deposit is for. Locked to
+  // "registration" when opened from the Overview "Pay registration fee" button.
+  const [depositPurpose, setDepositPurpose] = useState("shares");
+  const [depositPurposeLocked, setDepositPurposeLocked] = useState(false);
 
   // Paystack-specific state
   const [paystackLoading, setPaystackLoading] = useState(false);
@@ -174,10 +176,27 @@ const Dashboard = () => {
   const pollTimeoutRef = useRef(null);
   const pollCancelledRef = useRef(false);
 
-  const [loanForm, setLoanForm] = useState({ amount: "", purpose: "", termMonths: 3 });
+  const [loanForm, setLoanForm] = useState({
+    amount: "",
+    purpose: "",
+    termMonths: 3,
+    guarantorName: "",
+    guarantorMembershipId: "",
+  });
   const [loanSubmitting, setLoanSubmitting] = useState(false);
+  const [guarantorIdFile, setGuarantorIdFile] = useState(null);
 
-  const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "" });
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    lineOfBusiness: "",
+    nextOfKinName: "",
+    nextOfKinAddress: "",
+    nextOfKinPhone: "",
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
 
   const [settingsToggles, setSettingsToggles] = useState([
     { id: "email-notifications", icon: Mail, label: "Email notifications", description: "Deposit receipts and group updates", on: true },
@@ -218,7 +237,16 @@ const Dashboard = () => {
       const { data } = await api.get("/auth/me");
       const u = data.user;
       setUser(u);
-      setProfileForm({ name: u.name || "", email: u.email || "", phone: u.phone || "" });
+      setProfileForm({
+        name: u.name || "",
+        email: u.email || "",
+        phone: u.phone || "",
+        address: u.address || "",
+        lineOfBusiness: u.lineOfBusiness || "",
+        nextOfKinName: u.nextOfKin?.name || "",
+        nextOfKinAddress: u.nextOfKin?.address || "",
+        nextOfKinPhone: u.nextOfKin?.phone || "",
+      });
     } catch {
       // 401 handled globally — redirected to login
     } finally {
@@ -256,19 +284,6 @@ const Dashboard = () => {
     }
   }, []);
 
-  const fetchContributions = useCallback(async (page = 1) => {
-    setLoading("contributions", true);
-    try {
-      const { data } = await api.get(`/member/contributions?page=${page}&limit=10`);
-      setContributions(data.contributions || []);
-      setContribPagination(data.pagination || { page: 1, pages: 1 });
-    } catch (err) {
-      if (err.response?.status !== 403) showToast("Failed to load contributions");
-    } finally {
-      setLoading("contributions", false);
-    }
-  }, []);
-
   const fetchLoans = useCallback(async () => {
     setLoading("loans", true);
     try {
@@ -302,7 +317,6 @@ const Dashboard = () => {
       fetchSavingsBalance();
       fetchSavingsHistory();
     }
-    if (activeTab === "contribution-history") fetchContributions();
     if (activeTab === "loan-application") fetchLoans();
   }, [activeTab, user]);
 
@@ -325,6 +339,9 @@ const Dashboard = () => {
     e.preventDefault();
     const amount = parseFloat(depositAmount.replace(/[^0-9.]/g, ""));
     if (!amount || amount <= 0) return showToast("Enter a valid amount");
+    if (depositPurpose === "other" && !depositNote.trim()) {
+      return showToast("Tell us what this payment is for");
+    }
     if (depositMethod === "bank_transfer" && !receiptFile) {
       return showToast("Upload your payment receipt to continue");
     }
@@ -334,19 +351,29 @@ const Dashboard = () => {
       const formData = new FormData();
       formData.append("amount", amount);
       formData.append("method", depositMethod);
+      formData.append("paymentPurpose", depositPurpose);
       if (depositNote) formData.append("note", depositNote);
       if (receiptFile) formData.append("receipt", receiptFile);
 
-      await api.post("/member/savings/deposit", formData, {
+      const endpoint =
+        depositPurpose === "registration" ? "/member/registration-fee" : "/member/savings/deposit";
+
+      await api.post(endpoint, formData, {
         // Drop the instance's default JSON header so the browser can set
         // multipart/form-data with the correct boundary itself.
         headers: { "Content-Type": undefined },
       });
-      showToast("Deposit submitted — awaiting confirmation");
+      showToast(
+        depositPurpose === "registration"
+          ? "Registration fee submitted — awaiting confirmation"
+          : "Deposit submitted — awaiting confirmation"
+      );
       setDepositOpen(false);
       setDepositAmount("");
       setDepositNote("");
       setReceiptFile(null);
+      setDepositPurpose("shares");
+      setDepositPurposeLocked(false);
       fetchSavingsBalance();
       fetchSavingsHistory();
     } catch (err) {
@@ -354,6 +381,273 @@ const Dashboard = () => {
     } finally {
       setDepositSubmitting(false);
     }
+  };
+
+  // Opens the deposit form pre-set for a specific purpose. Used by both the
+  // "Make a deposit" button (unlocked, defaults to Shares) and the Overview
+  // "Pay registration fee" button (locked to Registration).
+  const openDepositForm = (purpose = "shares", locked = false) => {
+    setDepositPurpose(purpose);
+    setDepositPurposeLocked(locked);
+    setDepositOpen(true);
+  };
+
+  // Renders the deposit Card for a given context ("savings" or
+  // "registration"). Both share the same open-state form — only the
+  // closed-state copy/button and which purpose it opens with differ. A
+  // context only shows itself as "open" if it's the one that opened the
+  // shared deposit state, so the two entry points never collide.
+  const renderDepositForm = (context) => {
+    const isThisOpen = depositOpen && depositPurposeLocked === (context === "registration");
+    const closedCopy =
+      context === "registration"
+        ? {
+            title: "Registration fee",
+            body: "One-time fee to complete your membership sign-up.",
+            buttonLabel: "Pay registration fee",
+          }
+        : {
+            title: "Add to your savings",
+            body: "Pay by bank transfer and upload your receipt — a treasurer confirms it shortly after.",
+            buttonLabel: "Make a deposit",
+          };
+
+    return (
+      <Card>
+        <h3 className="font-semibold text-lg text-[#111111] mb-4">{closedCopy.title}</h3>
+        {!isThisOpen ? (
+          <>
+            <p className="text-[13px] text-[#6B6B6B] mb-5">{closedCopy.body}</p>
+            <button
+              onClick={() =>
+                openDepositForm(context === "registration" ? "registration" : "shares", context === "registration")
+              }
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] transition-colors"
+            >
+              <Plus size={16} strokeWidth={1.75} />
+              {closedCopy.buttonLabel}
+            </button>
+          </>
+        ) : (
+          <form onSubmit={handleDepositSubmit} className="space-y-4">
+            {depositPurposeLocked ? (
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#96158F]/5 border border-[#96158F]/20 text-[13px] font-medium text-[#96158F]">
+                <Shield size={14} />
+                Registration fee payment
+              </div>
+            ) : (
+              <div>
+                <p className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                  What is this for?
+                </p>
+                <div className="flex gap-2">
+                  {[
+                    { id: "shares", label: "Shares" },
+                    { id: "other", label: "Other payment" },
+                  ].map((opt) => (
+                    <label
+                      key={opt.id}
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-[13px] font-medium cursor-pointer transition-colors ${
+                        depositPurpose === opt.id
+                          ? "border-[#96158F] bg-[#96158F]/5 text-[#96158F]"
+                          : "border-[#E4E4E4] text-[#6B6B6B] hover:bg-[#F7F7F7]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="depositPurpose"
+                        value={opt.id}
+                        checked={depositPurpose === opt.id}
+                        onChange={() => setDepositPurpose(opt.id)}
+                        className="accent-[#96158F]"
+                      />
+                      {opt.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                Amount (₦)
+              </label>
+              <input
+                type="text"
+                autoFocus
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                Payment method
+              </label>
+              <select
+                value={depositMethod}
+                onChange={(e) => setDepositMethod(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] focus:outline-none focus:border-[#96158F]"
+              >
+                <option value="bank_transfer">Bank transfer</option>
+                <option value="cash">Cash</option>
+                <option value="other">Other</option>
+                <option value="paystack" disabled>
+                  Pay now via Paystack (coming soon)
+                </option>
+              </select>
+            </div>
+
+            {depositMethod === "bank_transfer" && (
+              <div className="rounded-xl border border-[#E4E4E4] bg-[#FAFAFA] p-4 space-y-3">
+                <div className="flex items-center gap-2 text-[12px] font-semibold text-[#111111] uppercase tracking-wide">
+                  <Landmark size={14} className="text-[#96158F]" />
+                  Transfer to this account
+                </div>
+                {[
+                  { label: "Bank", value: BANK_DETAILS.bank, field: "bank" },
+                  { label: "Account number", value: BANK_DETAILS.accountNumber, field: "accountNumber" },
+                  { label: "Account name", value: BANK_DETAILS.accountName, field: "accountName" },
+                ].map((row) => (
+                  <div key={row.field} className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] text-[#6B6B6B] uppercase tracking-wide">{row.label}</p>
+                      <p className="text-[13px] font-medium text-[#111111]">{row.value}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(row.value, row.field)}
+                      className="p-1.5 rounded-lg text-[#6B6B6B] hover:text-[#96158F] hover:bg-white transition-colors flex-shrink-0"
+                      aria-label={`Copy ${row.label}`}
+                    >
+                      {copiedField === row.field ? (
+                        <Check size={14} className="text-green-600" />
+                      ) : (
+                        <Copy size={14} />
+                      )}
+                    </button>
+                  </div>
+                ))}
+                <p className="text-[11px] text-[#6B6B6B]">
+                  Make the transfer, then upload your receipt below.
+                </p>
+              </div>
+            )}
+
+            {(depositMethod === "bank_transfer" || depositMethod === "cash" || depositMethod === "other") && (
+              <div>
+                <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                  Payment receipt{depositMethod === "bank_transfer" ? "" : " (optional)"}
+                </label>
+                <label className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-dashed border-[#E4E4E4] text-[13px] text-[#6B6B6B] hover:border-[#96158F] hover:text-[#96158F] cursor-pointer transition-colors">
+                  <Paperclip size={14} />
+                  <span className="truncate">
+                    {receiptFile ? receiptFile.name : "Upload a photo or PDF of your receipt"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                    className="hidden"
+                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                  />
+                </label>
+                {receiptFile && (
+                  <div className="flex items-center justify-between mt-1.5">
+                    <p className="text-[11px] text-[#6B6B6B] flex items-center gap-1">
+                      <FileText size={11} /> {(receiptFile.size / 1024).toFixed(0)} KB
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setReceiptFile(null)}
+                      className="text-[11px] text-[#96158F] hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                {depositPurpose === "other" ? "What is this payment for?" : "Note (optional)"}
+              </label>
+              <input
+                type="text"
+                required={depositPurpose === "other"}
+                value={depositNote}
+                onChange={(e) => setDepositNote(e.target.value)}
+                placeholder={
+                  depositPurpose === "other"
+                    ? "e.g. Event levy, uniform fee…"
+                    : "Reference number, etc."
+                }
+                className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
+              />
+            </div>
+
+            {depositMethod === "paystack" ? (
+              <p className="text-[11px] text-[#6B6B6B] flex items-center gap-1.5">
+                <Shield size={12} />
+                Instant — confirmed automatically once payment clears.
+              </p>
+            ) : (
+              <p className="text-[11px] text-amber-600 flex items-center gap-1.5">
+                <Clock size={12} />
+                Deposits are pending until a treasurer confirms them.
+              </p>
+            )}
+
+            {paystackStatus === "polling" && (
+              <p className="text-[11px] text-[#96158F] flex items-center gap-1.5">
+                <RefreshCw size={12} className="animate-spin" />
+                Confirming your payment…
+              </p>
+            )}
+            {paystackStatus === "confirming" && (
+              <p className="text-[11px] text-[#96158F] flex items-center gap-1.5">
+                <RefreshCw size={12} className="animate-spin" />
+                Finalizing…
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              {depositMethod === "paystack" ? (
+                <button
+                  type="button"
+                  onClick={handlePaystackDeposit}
+                  disabled={paystackLoading || paystackStatus !== ""}
+                  className="flex-1 py-2.5 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
+                >
+                  {paystackLoading ? "Opening checkout…" : "Pay with Paystack"}
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={depositSubmitting}
+                  className="flex-1 py-2.5 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
+                >
+                  {depositSubmitting ? "Submitting…" : "Submit"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  stopPolling();
+                  setDepositOpen(false);
+                  setReceiptFile(null);
+                  setDepositPurpose("shares");
+                  setDepositPurposeLocked(false);
+                }}
+                className="px-4 py-2.5 rounded-xl text-[14px] font-medium border border-[#E4E4E4] text-[#111111] hover:bg-[#F7F7F7] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </Card>
+    );
   };
 
   // ── Paystack deposit flow ────────────────────────────────────────────────
@@ -477,15 +771,24 @@ const Dashboard = () => {
     const amount = parseFloat(loanForm.amount.replace(/[^0-9.]/g, ""));
     if (!amount || amount <= 0) return showToast("Enter a valid amount");
     if (!loanForm.purpose.trim()) return showToast("Describe the purpose of the loan");
+    if (!loanForm.guarantorName.trim()) return showToast("Enter your guarantor's full name");
+    if (!loanForm.guarantorMembershipId.trim()) return showToast("Enter your guarantor's membership ID");
     setLoanSubmitting(true);
     try {
-      await api.post("/member/loans", {
-        amount,
-        purpose: loanForm.purpose.trim(),
-        termMonths: loanForm.termMonths,
+      const formData = new FormData();
+      formData.append("amount", amount);
+      formData.append("purpose", loanForm.purpose.trim());
+      formData.append("termMonths", loanForm.termMonths);
+      formData.append("guarantorName", loanForm.guarantorName.trim());
+      formData.append("guarantorMembershipId", loanForm.guarantorMembershipId.trim());
+      if (guarantorIdFile) formData.append("guarantorId", guarantorIdFile);
+
+      await api.post("/member/loans", formData, {
+        headers: { "Content-Type": undefined },
       });
       showToast("Loan application submitted");
-      setLoanForm({ amount: "", purpose: "", termMonths: 3 });
+      setLoanForm({ amount: "", purpose: "", termMonths: 3, guarantorName: "", guarantorMembershipId: "" });
+      setGuarantorIdFile(null);
       fetchLoans();
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to submit loan application");
@@ -517,10 +820,31 @@ const Dashboard = () => {
     }
   };
 
-  const handleProfileSave = (e) => {
+  const handleProfileSave = async (e) => {
     e.preventDefault();
-    // Backend doesn't yet have a profile update endpoint
-    showToast("Profile update coming soon");
+    if (!profileForm.name.trim()) return showToast("Full name is required");
+    if (!profileForm.phone.trim()) return showToast("Phone number is required");
+
+    setProfileSaving(true);
+    try {
+      const { data } = await api.put("/auth/me", {
+        name: profileForm.name.trim(),
+        phone: profileForm.phone.trim(),
+        address: profileForm.address.trim(),
+        lineOfBusiness: profileForm.lineOfBusiness.trim(),
+        nextOfKin: {
+          name: profileForm.nextOfKinName.trim(),
+          address: profileForm.nextOfKinAddress.trim(),
+          phone: profileForm.nextOfKinPhone.trim(),
+        },
+      });
+      setUser(data.user);
+      showToast("Profile updated");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to update profile");
+    } finally {
+      setProfileSaving(false);
+    }
   };
 
   const handleChangePassword = async () => {
@@ -541,8 +865,7 @@ const Dashboard = () => {
 
   const menuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "savings-balance", label: "Savings Balance", icon: PiggyBank },
-    { id: "contribution-history", label: "Contributions", icon: History },
+    { id: "savings-balance", label: "Savings", icon: PiggyBank },
     { id: "loan-application", label: "Loan Application", icon: HandCoins },
     { id: "profile-management", label: "Profile", icon: User },
     { id: "notifications", label: "Notifications", icon: Bell },
@@ -632,6 +955,9 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
+
+            {/* Registration fee */}
+            {renderDepositForm("registration")}
 
             {/* Recent notifications preview */}
             <Card>
@@ -794,268 +1120,9 @@ const Dashboard = () => {
                 )}
               </Card>
 
-              {/* Deposit form */}
-              <Card>
-                <h3 className="font-semibold text-lg text-[#111111] mb-4">
-                  Add to your savings
-                </h3>
-                {!depositOpen ? (
-                  <>
-                    <p className="text-[13px] text-[#6B6B6B] mb-5">
-                      Pay by bank transfer and upload your receipt — a treasurer confirms it shortly after.
-                    </p>
-                    <button
-                      onClick={() => setDepositOpen(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] transition-colors"
-                    >
-                      <Plus size={16} strokeWidth={1.75} />
-                      Make a deposit
-                    </button>
-                  </>
-                ) : (
-                  <form onSubmit={handleDepositSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
-                        Amount (₦)
-                      </label>
-                      <input
-                        type="text"
-                        autoFocus
-                        value={depositAmount}
-                        onChange={(e) => setDepositAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
-                        Payment method
-                      </label>
-                      <select
-                        value={depositMethod}
-                        onChange={(e) => setDepositMethod(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] focus:outline-none focus:border-[#96158F]"
-                      >
-                        <option value="bank_transfer">Bank transfer</option>
-                        <option value="cash">Cash</option>
-                        <option value="other">Other</option>
-                        <option value="paystack" disabled>
-                          Pay now via Paystack (coming soon)
-                        </option>
-                      </select>
-                    </div>
-
-                    {depositMethod === "bank_transfer" && (
-                      <div className="rounded-xl border border-[#E4E4E4] bg-[#FAFAFA] p-4 space-y-3">
-                        <div className="flex items-center gap-2 text-[12px] font-semibold text-[#111111] uppercase tracking-wide">
-                          <Landmark size={14} className="text-[#96158F]" />
-                          Transfer to this account
-                        </div>
-                        {[
-                          { label: "Bank", value: BANK_DETAILS.bank, field: "bank" },
-                          { label: "Account number", value: BANK_DETAILS.accountNumber, field: "accountNumber" },
-                          { label: "Account name", value: BANK_DETAILS.accountName, field: "accountName" },
-                        ].map((row) => (
-                          <div key={row.field} className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-[10px] text-[#6B6B6B] uppercase tracking-wide">{row.label}</p>
-                              <p className="text-[13px] font-medium text-[#111111]">{row.value}</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard(row.value, row.field)}
-                              className="p-1.5 rounded-lg text-[#6B6B6B] hover:text-[#96158F] hover:bg-white transition-colors flex-shrink-0"
-                              aria-label={`Copy ${row.label}`}
-                            >
-                              {copiedField === row.field ? (
-                                <Check size={14} className="text-green-600" />
-                              ) : (
-                                <Copy size={14} />
-                              )}
-                            </button>
-                          </div>
-                        ))}
-                        <p className="text-[11px] text-[#6B6B6B]">
-                          Make the transfer, then upload your receipt below.
-                        </p>
-                      </div>
-                    )}
-
-                    {(depositMethod === "bank_transfer" || depositMethod === "cash" || depositMethod === "other") && (
-                      <div>
-                        <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
-                          Payment receipt{depositMethod === "bank_transfer" ? "" : " (optional)"}
-                        </label>
-                        <label className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-dashed border-[#E4E4E4] text-[13px] text-[#6B6B6B] hover:border-[#96158F] hover:text-[#96158F] cursor-pointer transition-colors">
-                          <Paperclip size={14} />
-                          <span className="truncate">
-                            {receiptFile ? receiptFile.name : "Upload a photo or PDF of your receipt"}
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
-                            className="hidden"
-                            onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-                          />
-                        </label>
-                        {receiptFile && (
-                          <div className="flex items-center justify-between mt-1.5">
-                            <p className="text-[11px] text-[#6B6B6B] flex items-center gap-1">
-                              <FileText size={11} /> {(receiptFile.size / 1024).toFixed(0)} KB
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => setReceiptFile(null)}
-                              className="text-[11px] text-[#96158F] hover:underline"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
-                        Note (optional)
-                      </label>
-                      <input
-                        type="text"
-                        value={depositNote}
-                        onChange={(e) => setDepositNote(e.target.value)}
-                        placeholder="Reference number, etc."
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
-                      />
-                    </div>
-
-                    {depositMethod === "paystack" ? (
-                      <p className="text-[11px] text-[#6B6B6B] flex items-center gap-1.5">
-                        <Shield size={12} />
-                        Instant — confirmed automatically once payment clears.
-                      </p>
-                    ) : (
-                      <p className="text-[11px] text-amber-600 flex items-center gap-1.5">
-                        <Clock size={12} />
-                        Deposits are pending until a treasurer confirms them.
-                      </p>
-                    )}
-
-                    {paystackStatus === "polling" && (
-                      <p className="text-[11px] text-[#96158F] flex items-center gap-1.5">
-                        <RefreshCw size={12} className="animate-spin" />
-                        Confirming your payment…
-                      </p>
-                    )}
-                    {paystackStatus === "confirming" && (
-                      <p className="text-[11px] text-[#96158F] flex items-center gap-1.5">
-                        <RefreshCw size={12} className="animate-spin" />
-                        Finalizing…
-                      </p>
-                    )}
-
-                    <div className="flex gap-2">
-                      {depositMethod === "paystack" ? (
-                        <button
-                          type="button"
-                          onClick={handlePaystackDeposit}
-                          disabled={paystackLoading || paystackStatus !== ""}
-                          className="flex-1 py-2.5 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
-                        >
-                          {paystackLoading ? "Opening checkout…" : "Pay with Paystack"}
-                        </button>
-                      ) : (
-                        <button
-                          type="submit"
-                          disabled={depositSubmitting}
-                          className="flex-1 py-2.5 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
-                        >
-                          {depositSubmitting ? "Submitting…" : "Submit"}
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          stopPolling();
-                          setDepositOpen(false);
-                          setReceiptFile(null);
-                        }}
-                        className="px-4 py-2.5 rounded-xl text-[14px] font-medium border border-[#E4E4E4] text-[#111111] hover:bg-[#F7F7F7] transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </Card>
+              {renderDepositForm("savings")}
             </div>
           </div>
-        );
-
-      // ── Contributions ───────────────────────────────────────────────────────
-      case "contribution-history":
-        if (!approved) {
-          return (
-            <Card>
-              <ApprovalBanner
-                approvalStatus={user?.approvalStatus}
-                rejectionReason={user?.rejectionReason}
-              />
-            </Card>
-          );
-        }
-        return (
-          <Card>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-semibold text-lg text-[#111111]">
-                Contribution history
-              </h3>
-              <button
-                onClick={() => fetchContributions(1)}
-                className="text-[#6B6B6B] hover:text-[#111111] transition-colors"
-                aria-label="Refresh"
-              >
-                <RefreshCw size={15} />
-              </button>
-            </div>
-            {loadingSection.contributions ? (
-              <SectionLoader />
-            ) : contributions.length === 0 ? (
-              <p className="text-[13px] text-[#6B6B6B] py-8 text-center">
-                No contributions recorded yet.
-              </p>
-            ) : (
-              <>
-                <ul>
-                  {contributions.map((c, i) => (
-                    <li
-                      key={c._id}
-                      className={`flex items-center gap-4 py-3.5 ${
-                        i !== contributions.length - 1 ? "border-b border-[#EFEFEF]" : ""
-                      }`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] text-[#111111]">
-                          Monthly contribution via {c.method?.replace("_", " ")}
-                        </p>
-                        <p className="text-[11px] text-[#6B6B6B] tabular-nums">
-                          {fmtDate(c.createdAt)}
-                        </p>
-                      </div>
-                      <StatusBadge status={c.status} />
-                      <span className="flex-shrink-0 text-[14px] font-semibold text-[#111111] tabular-nums">
-                        {fmtCurrency(c.amount)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <Pagination
-                  page={contribPagination.page}
-                  pages={contribPagination.pages}
-                  onPage={(p) => fetchContributions(p)}
-                />
-              </>
-            )}
-          </Card>
         );
 
       // ── Loan Application ────────────────────────────────────────────────────
@@ -1100,6 +1167,24 @@ const Dashboard = () => {
                             <p className="text-[11px] text-[#6B6B6B] mt-0.5">
                               {loan.termMonths} months · Applied {fmtDate(loan.createdAt)}
                             </p>
+                            {loan.guarantorName && (
+                              <p className="text-[11px] text-[#6B6B6B] mt-0.5">
+                                Guarantor: {loan.guarantorName} ({loan.guarantorMembershipId})
+                                {loan.guarantorIdUrl && (
+                                  <>
+                                    {" · "}
+                                    <a
+                                      href={loan.guarantorIdUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[#96158F] hover:underline"
+                                    >
+                                      View ID
+                                    </a>
+                                  </>
+                                )}
+                              </p>
+                            )}
                             {loan.reviewNote && (
                               <p className="text-[12px] text-[#6B6B6B] mt-1 italic">
                                 Note: {loan.reviewNote}
@@ -1145,6 +1230,63 @@ const Dashboard = () => {
                     className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F] resize-none"
                   />
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                      Guarantor's full name
+                    </label>
+                    <input
+                      type="text"
+                      value={loanForm.guarantorName}
+                      onChange={(e) => setLoanForm((f) => ({ ...f, guarantorName: e.target.value }))}
+                      placeholder="Full name"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                      Guarantor's membership ID
+                    </label>
+                    <input
+                      type="text"
+                      value={loanForm.guarantorMembershipId}
+                      onChange={(e) => setLoanForm((f) => ({ ...f, guarantorMembershipId: e.target.value }))}
+                      placeholder="e.g. PWWEF20260712345"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                    Guarantor's membership ID (upload — optional)
+                  </label>
+                  <label className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-dashed border-[#E4E4E4] text-[13px] text-[#6B6B6B] hover:border-[#96158F] hover:text-[#96158F] cursor-pointer transition-colors">
+                    <Paperclip size={14} />
+                    <span className="truncate">
+                      {guarantorIdFile ? guarantorIdFile.name : "Upload a photo of the guarantor's membership ID"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                      className="hidden"
+                      onChange={(e) => setGuarantorIdFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                  {guarantorIdFile && (
+                    <div className="flex items-center justify-between mt-1.5">
+                      <p className="text-[11px] text-[#6B6B6B] flex items-center gap-1">
+                        <FileText size={11} /> {(guarantorIdFile.size / 1024).toFixed(0)} KB
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setGuarantorIdFile(null)}
+                        className="text-[11px] text-[#96158F] hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <div>
                   <p className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
                     Repayment period
@@ -1167,7 +1309,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <p className="text-[11px] text-[#6B6B6B]">
-                  Requires 3+ cleared monthly contributions to be eligible.
+                  Requires 3+ cleared monthly savings to be eligible.
                 </p>
                 <button
                   type="submit"
@@ -1194,11 +1336,10 @@ const Dashboard = () => {
                 <p className="text-[12px] text-[#6B6B6B] mt-0.5">{user?.coopId || "No coop ID"}</p>
               </div>
             </div>
-            <form onSubmit={handleProfileSave} className="space-y-5">
+            <form onSubmit={handleProfileSave} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {[
                   { id: "name", label: "Full name", type: "text", key: "name", autoComplete: "name" },
-                  { id: "email", label: "Email", type: "email", key: "email", autoComplete: "email" },
                   { id: "phone", label: "Phone", type: "tel", key: "phone", autoComplete: "tel" },
                 ].map((f) => (
                   <div key={f.id}>
@@ -1222,6 +1363,17 @@ const Dashboard = () => {
                 ))}
                 <div>
                   <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    defaultValue={profileForm.email}
+                    disabled
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#6B6B6B] bg-[#F7F7F7] cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
                     Cooperative ID
                   </label>
                   <input
@@ -1231,12 +1383,77 @@ const Dashboard = () => {
                     className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#6B6B6B] bg-[#F7F7F7] cursor-not-allowed"
                   />
                 </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                    Full address
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.address}
+                    onChange={(e) => setProfileForm((prev) => ({ ...prev, address: e.target.value }))}
+                    placeholder="House number, street, city, state"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                    Line of business
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.lineOfBusiness}
+                    onChange={(e) => setProfileForm((prev) => ({ ...prev, lineOfBusiness: e.target.value }))}
+                    placeholder="e.g. Tailoring, Catering, Trading"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] placeholder:text-[#6B6B6B]/50 focus:outline-none focus:border-[#96158F]"
+                  />
+                </div>
               </div>
+
+              <div className="pt-5 border-t border-[#EFEFEF]">
+                <p className="text-[13px] font-semibold text-[#111111] mb-4">Next of kin</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                      Full name
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.nextOfKinName}
+                      onChange={(e) => setProfileForm((prev) => ({ ...prev, nextOfKinName: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] focus:outline-none focus:border-[#96158F]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                      Phone number
+                    </label>
+                    <input
+                      type="tel"
+                      value={profileForm.nextOfKinPhone}
+                      onChange={(e) => setProfileForm((prev) => ({ ...prev, nextOfKinPhone: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] focus:outline-none focus:border-[#96158F]"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">
+                      Full address
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.nextOfKinAddress}
+                      onChange={(e) => setProfileForm((prev) => ({ ...prev, nextOfKinAddress: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E4E4E4] text-[14px] text-[#111111] focus:outline-none focus:border-[#96158F]"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <button
                 type="submit"
-                className="px-5 py-3 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] transition-colors"
+                disabled={profileSaving}
+                className="px-5 py-3 rounded-xl text-[14px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
               >
-                Save changes
+                {profileSaving ? "Saving…" : "Save changes"}
               </button>
             </form>
           </Card>

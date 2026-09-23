@@ -195,9 +195,9 @@ const AdminDashboard = () => {
   const [txPagination, setTxPagination] = useState({ page: 1, pages: 1 });
   const [txLoading, setTxLoading] = useState(false);
   const [txStatusFilter, setTxStatusFilter] = useState("");
-  const [txCategoryFilter, setTxCategoryFilter] = useState("");
+  const [txPurposeFilter, setTxPurposeFilter] = useState("");
   const [createTxOpen, setCreateTxOpen] = useState(false);
-  const [createTxForm, setCreateTxForm] = useState({ userId: "", amount: "", category: "savings", type: "deposit", method: "cash", note: "", status: "pending" });
+  const [createTxForm, setCreateTxForm] = useState({ userId: "", amount: "", paymentPurpose: "shares", type: "deposit", method: "cash", note: "", status: "pending" });
   const [createTxSubmitting, setCreateTxSubmitting] = useState(false);
 
   // Loans
@@ -212,9 +212,17 @@ const AdminDashboard = () => {
   const [approveNoteModal, setApproveNoteModal] = useState(null); // { type: 'loan', id }
   const [approveNote, setApproveNote] = useState("");
   const [deleteModal, setDeleteModal] = useState(null);
+  const [deleteTxModal, setDeleteTxModal] = useState(null);
   const [roleModal, setRoleModal] = useState(null);
   const [newRole, setNewRole] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Admin/moderator accounts
+  const [admins, setAdmins] = useState([]);
+  const [adminsLoading, setAdminsLoading] = useState(false);
+  const [createAdminOpen, setCreateAdminOpen] = useState(false);
+  const [createAdminForm, setCreateAdminForm] = useState({ name: "", email: "", password: "", role: "moderator" });
+  const [createAdminSubmitting, setCreateAdminSubmitting] = useState(false);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -352,36 +360,13 @@ useEffect(() => {
   }
 };
 
-const handleExportContributions = async () => {
-  try {
-    const response = await api.get('/admin/reports/contributions/export', {
-      responseType: 'blob'
-    });
-    
-    // Create download link
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `contribution-report-${new Date().toISOString().split('T')[0]}.xlsx`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    
-    showToast('Contribution report exported successfully');
-  } catch (error) {
-    console.error('Export contribution error:', error);
-    showToast('Failed to export contribution report', 'error');
-  }
-};
-
-
   const fetchTransactions = useCallback(
     async (page = 1) => {
       setTxLoading(true);
       try {
         const params = new URLSearchParams({ page, limit: 10 });
         if (txStatusFilter) params.set("status", txStatusFilter);
-        if (txCategoryFilter) params.set("category", txCategoryFilter);
+        if (txPurposeFilter) params.set("paymentPurpose", txPurposeFilter);
         const { data } = await api.get(`/admin/transactions?${params}`);
         setTransactions(data.transactions || []);
         setTxPagination(data.pagination || { page: 1, pages: 1 });
@@ -391,7 +376,7 @@ const handleExportContributions = async () => {
         setTxLoading(false);
       }
     },
-    [txStatusFilter, txCategoryFilter]
+    [txStatusFilter, txPurposeFilter]
   );
 
   const fetchLoans = useCallback(
@@ -412,6 +397,18 @@ const handleExportContributions = async () => {
     [loansStatusFilter]
   );
 
+  const fetchAdmins = useCallback(async () => {
+    setAdminsLoading(true);
+    try {
+      const { data } = await api.get("/admin/auth/admins");
+      setAdmins(data.admins || []);
+    } catch (err) {
+      if (err.response?.status !== 403) showToast("Failed to load admin accounts", "error");
+    } finally {
+      setAdminsLoading(false);
+    }
+  }, []);
+
   // Load section data when tab changes
   useEffect(() => {
     if (!adminUser) return;
@@ -420,6 +417,7 @@ const handleExportContributions = async () => {
     if (activeTab === "users") fetchUsers();
     if (activeTab === "transactions") fetchTransactions();
     if (activeTab === "loans") fetchLoans();
+    if (activeTab === "admins") fetchAdmins();
   }, [activeTab, adminUser]);
 
   // Re-fetch users when filters change
@@ -432,7 +430,7 @@ const handleExportContributions = async () => {
 
   useEffect(() => {
     if (activeTab === "transactions" && adminUser) fetchTransactions(1);
-  }, [txStatusFilter, txCategoryFilter]);
+  }, [txStatusFilter, txPurposeFilter]);
 
   useEffect(() => {
     if (activeTab === "loans" && adminUser) fetchLoans(1);
@@ -528,7 +526,8 @@ const handleExportContributions = async () => {
       await api.post("/admin/transactions", {
         userId: createTxForm.userId,
         amount,
-        category: createTxForm.category,
+        category: "savings",
+        paymentPurpose: createTxForm.paymentPurpose,
         type: createTxForm.type,
         method: createTxForm.method,
         note: createTxForm.note || undefined,
@@ -536,7 +535,7 @@ const handleExportContributions = async () => {
       });
       showToast("Transaction recorded");
       setCreateTxOpen(false);
-      setCreateTxForm({ userId: "", amount: "", category: "savings", type: "deposit", method: "cash", note: "", status: "pending" });
+      setCreateTxForm({ userId: "", amount: "", paymentPurpose: "shares", type: "deposit", method: "cash", note: "", status: "pending" });
       fetchTransactions(1);
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to record transaction", "error");
@@ -570,6 +569,42 @@ const handleExportContributions = async () => {
       showToast(err.response?.data?.message || "Failed to reject", "error");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!deleteTxModal) return;
+    setActionLoading(true);
+    try {
+      await api.delete(`/admin/transactions/${deleteTxModal.id}`);
+      showToast("Transaction deleted");
+      setDeleteTxModal(null);
+      fetchTransactions(txPagination.page);
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to delete transaction", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ── Admin/moderator accounts ────────────────────────────────────────────────
+
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    if (!createAdminForm.name.trim() || !createAdminForm.email.trim() || !createAdminForm.password) {
+      return showToast("Name, email and password are required", "error");
+    }
+    setCreateAdminSubmitting(true);
+    try {
+      await api.post("/admin/auth/admins", createAdminForm);
+      showToast(`${createAdminForm.role === "moderator" ? "Moderator" : "Admin"} account created`);
+      setCreateAdminOpen(false);
+      setCreateAdminForm({ name: "", email: "", password: "", role: "moderator" });
+      fetchAdmins();
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to create account", "error");
+    } finally {
+      setCreateAdminSubmitting(false);
     }
   };
 
@@ -628,6 +663,7 @@ const handleExportContributions = async () => {
     { id: "transactions", label: "Transactions", icon: PiggyBank },
     { id: "loans", label: "Loans", icon: HandCoins },
     { id: "reports", label: "Reports", icon: BarChart2 },
+    ...(isSuperAdmin ? [{ id: "admins", label: "Admins", icon: ShieldCheck }] : []),
   ];
 
   if (pageLoading) {
@@ -695,10 +731,10 @@ const handleExportContributions = async () => {
 
                 <Card>
                   <p className="text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-3">
-                    Contributions
+                    Shares &amp; other payments
                   </p>
                   <p className="font-semibold text-[26px] text-[#111111] leading-none mb-1">
-                    {fmtCurrency(report.contributions?.totalCollected)}
+                    {fmtCurrency((report.payments?.shares || 0) + (report.payments?.other || 0))}
                   </p>
                   <p className="text-[12px] text-[#6B6B6B]">Total collected</p>
                   <p className="text-[12px] text-amber-600 mt-3 flex items-center gap-1">
@@ -979,10 +1015,11 @@ const handleExportContributions = async () => {
                     <option value="cleared">Cleared</option>
                     <option value="rejected">Rejected</option>
                   </Select>
-                  <Select value={txCategoryFilter} onChange={(e) => setTxCategoryFilter(e.target.value)}>
-                    <option value="">All categories</option>
-                    <option value="savings">Savings</option>
-                    <option value="contribution">Contribution</option>
+                  <Select value={txPurposeFilter} onChange={(e) => setTxPurposeFilter(e.target.value)}>
+                    <option value="">All purposes</option>
+                    <option value="shares">Shares</option>
+                    <option value="other">Other payment</option>
+                    <option value="registration">Registration fee</option>
                   </Select>
                   <button
                     onClick={() => fetchTransactions(1)}
@@ -1032,10 +1069,11 @@ const handleExportContributions = async () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">Category</label>
-                    <Select className="w-full" value={createTxForm.category} onChange={(e) => setCreateTxForm((f) => ({ ...f, category: e.target.value }))}>
-                      <option value="savings">Savings</option>
-                      <option value="contribution">Contribution</option>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">Purpose</label>
+                    <Select className="w-full" value={createTxForm.paymentPurpose} onChange={(e) => setCreateTxForm((f) => ({ ...f, paymentPurpose: e.target.value }))}>
+                      <option value="shares">Shares</option>
+                      <option value="other">Other payment</option>
+                      <option value="registration">Registration fee</option>
                     </Select>
                   </div>
                   <div>
@@ -1104,7 +1142,7 @@ const handleExportContributions = async () => {
                     <table className="w-full min-w-[760px]">
                       <thead>
                         <tr className="text-left">
-                          {["Member", "Category", "Type", "Method", "Receipt", "Amount", "Status", "Date", "Actions"].map((h) => (
+                          {["Member", "Purpose", "Type", "Method", "Receipt", "Amount", "Status", "Date", "Actions"].map((h) => (
                             <th key={h} className="text-[11px] font-semibold text-[#6B6B6B] uppercase tracking-wide pb-3 pr-4">
                               {h}
                             </th>
@@ -1120,7 +1158,20 @@ const handleExportContributions = async () => {
                               </p>
                               <p className="text-[11px] text-[#6B6B6B]">{tx.user?.coopId}</p>
                             </td>
-                            <td className="py-3 pr-4 text-[13px] text-[#111111] capitalize">{tx.category}</td>
+                            <td className="py-3 pr-4">
+                              <p className="text-[13px] text-[#111111] capitalize">
+                                {tx.paymentPurpose === "registration"
+                                  ? "Registration fee"
+                                  : tx.paymentPurpose === "other"
+                                  ? "Other payment"
+                                  : tx.category === "contribution"
+                                  ? "Contribution"
+                                  : "Shares"}
+                              </p>
+                              {tx.paymentPurpose === "other" && tx.note && (
+                                <p className="text-[11px] text-[#6B6B6B] truncate max-w-[160px]">{tx.note}</p>
+                              )}
+                            </td>
                             <td className="py-3 pr-4 text-[13px] text-[#111111] capitalize">{tx.type}</td>
                             <td className="py-3 pr-4 text-[13px] text-[#6B6B6B] capitalize">{tx.method?.replace("_", " ")}</td>
                             <td className="py-3 pr-4">
@@ -1143,25 +1194,47 @@ const handleExportContributions = async () => {
                             <td className="py-3 pr-4"><StatusBadge status={tx.status} /></td>
                             <td className="py-3 pr-4 text-[12px] text-[#6B6B6B] tabular-nums">{fmtDate(tx.createdAt)}</td>
                             <td className="py-3">
-                              {tx.status === "pending" && (
-                                <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5">
+                                {tx.status === "pending" ? (
+                                  <>
+                                    <button
+                                      onClick={() => handleClearTransaction(tx._id)}
+                                      className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
+                                    >
+                                      Clear
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setRejectModal({ type: "transaction", id: tx._id, label: `${tx.type} of ${fmtCurrency(tx.amount)}` });
+                                        setRejectReason("");
+                                      }}
+                                      className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="text-[11px] text-[#6B6B6B]">
+                                    {tx.status === "cleared" ? "Cleared" : "Rejected"}
+                                    {tx.reviewedAt ? ` · ${fmtDate(tx.reviewedAt)}` : ""}
+                                  </span>
+                                )}
+                                {isSuperAdmin && (
                                   <button
-                                    onClick={() => handleClearTransaction(tx._id)}
-                                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
+                                    onClick={() =>
+                                      setDeleteTxModal({
+                                        id: tx._id,
+                                        label: `${tx.type} of ${fmtCurrency(tx.amount)}`,
+                                      })
+                                    }
+                                    className="p-1.5 rounded-lg text-[#6B6B6B] hover:text-red-600 hover:bg-red-50 transition-colors"
+                                    aria-label="Delete transaction"
+                                    title="Delete transaction"
                                   >
-                                    Clear
+                                    <Trash2 size={13} />
                                   </button>
-                                  <button
-                                    onClick={() => {
-                                      setRejectModal({ type: "transaction", id: tx._id, label: `${tx.type} of ${fmtCurrency(tx.amount)}` });
-                                      setRejectReason("");
-                                    }}
-                                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
-                                  >
-                                    Reject
-                                  </button>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -1231,6 +1304,24 @@ const handleExportContributions = async () => {
                             <p className="text-[12px] text-[#6B6B6B] mt-0.5">
                               Purpose: {loan.purpose}
                             </p>
+                            {loan.guarantorName && (
+                              <p className="text-[12px] text-[#6B6B6B] mt-0.5">
+                                Guarantor: {loan.guarantorName} ({loan.guarantorMembershipId})
+                                {loan.guarantorIdUrl && (
+                                  <>
+                                    {" · "}
+                                    <a
+                                      href={loan.guarantorIdUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[#96158F] hover:underline"
+                                    >
+                                      View ID
+                                    </a>
+                                  </>
+                                )}
+                              </p>
+                            )}
                             <p className="text-[11px] text-[#6B6B6B] mt-0.5">
                               {loan.termMonths} months · Applied {fmtDate(loan.createdAt)}
                             </p>
@@ -1294,13 +1385,6 @@ const handleExportContributions = async () => {
             Export Savings
           </button>
           <button
-            onClick={handleExportContributions}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium bg-[#111111] text-white hover:bg-[#333333] transition-colors"
-          >
-            <Download size={13} />
-            Export Contributions
-          </button>
-          <button
             onClick={fetchStats}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-medium border border-[#E4E4E4] text-[#111111] hover:bg-[#F7F7F7] transition-colors"
           >
@@ -1350,14 +1434,22 @@ const handleExportContributions = async () => {
                   </div>
                 </Card>
 
-                {/* Contributions & Transactions */}
+                {/* Payments & Transactions */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
-                    <p className="text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-3">Contributions</p>
-                    <p className="font-semibold text-[28px] text-[#111111] leading-none">
-                      {fmtCurrency(report.contributions?.totalCollected)}
-                    </p>
-                    <p className="text-[12px] text-[#6B6B6B] mt-1">Total collected (cleared)</p>
+                    <p className="text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-3">Payments (cleared)</p>
+                    <div className="space-y-2">
+                      {[
+                        { label: "Shares", value: fmtCurrency(report.payments?.shares) },
+                        { label: "Other payments", value: fmtCurrency(report.payments?.other) },
+                        { label: "Registration fees", value: fmtCurrency(report.payments?.registration) },
+                      ].map((r) => (
+                        <div key={r.label} className="flex justify-between">
+                          <span className="text-[13px] text-[#6B6B6B]">{r.label}</span>
+                          <span className="text-[13px] font-semibold text-[#111111] tabular-nums">{r.value}</span>
+                        </div>
+                      ))}
+                    </div>
                     <div className="mt-4 pt-4 border-t border-[#EFEFEF]">
                       <p className="text-[13px] text-amber-600 flex items-center gap-1.5">
                         <Clock size={13} />
@@ -1391,6 +1483,129 @@ const handleExportContributions = async () => {
                 </div>
               </>
             )}
+          </div>
+        );
+
+      // ── Admins ──────────────────────────────────────────────────────────────
+      case "admins":
+        if (!isSuperAdmin) return null;
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg text-[#111111]">Admin &amp; moderator accounts</h3>
+              <button
+                onClick={() => setCreateAdminOpen((o) => !o)}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] transition-colors"
+              >
+                <Plus size={14} />
+                New account
+              </button>
+            </div>
+
+            {createAdminOpen && (
+              <Card>
+                <h3 className="font-semibold text-[15px] text-[#111111] mb-4">Create an account</h3>
+                <form onSubmit={handleCreateAdmin} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">Full name</label>
+                    <Input
+                      type="text"
+                      value={createAdminForm.name}
+                      onChange={(e) => setCreateAdminForm((f) => ({ ...f, name: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">Email</label>
+                    <Input
+                      type="email"
+                      value={createAdminForm.email}
+                      onChange={(e) => setCreateAdminForm((f) => ({ ...f, email: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">Password</label>
+                    <Input
+                      type="password"
+                      value={createAdminForm.password}
+                      onChange={(e) => setCreateAdminForm((f) => ({ ...f, password: e.target.value }))}
+                      placeholder="At least 6 characters"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#6B6B6B] uppercase tracking-wide mb-1.5">Role</label>
+                    <Select
+                      className="w-full"
+                      value={createAdminForm.role}
+                      onChange={(e) => setCreateAdminForm((f) => ({ ...f, role: e.target.value }))}
+                    >
+                      <option value="moderator">Moderator</option>
+                      <option value="admin">Admin</option>
+                    </Select>
+                  </div>
+                  <div className="sm:col-span-2 flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={createAdminSubmitting}
+                      className="px-5 py-2.5 rounded-xl text-[13px] font-medium bg-[#96158F] text-white hover:bg-[#7D1278] disabled:opacity-70 transition-colors"
+                    >
+                      {createAdminSubmitting ? "Creating…" : "Create account"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCreateAdminOpen(false)}
+                      className="px-5 py-2.5 rounded-xl text-[13px] font-medium border border-[#E4E4E4] text-[#111111] hover:bg-[#F7F7F7] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </Card>
+            )}
+
+            <Card>
+              {adminsLoading ? (
+                <SectionLoader />
+              ) : admins.length === 0 ? (
+                <p className="text-[13px] text-[#6B6B6B] py-8 text-center">No admin accounts yet.</p>
+              ) : (
+                <ul>
+                  {admins.map((a, i) => (
+                    <li
+                      key={a._id}
+                      className={`flex items-center justify-between gap-4 py-3.5 ${
+                        i !== admins.length - 1 ? "border-b border-[#EFEFEF]" : ""
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-medium text-[#111111]">{a.name}</p>
+                        <p className="text-[11px] text-[#6B6B6B]">{a.email}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-medium border capitalize ${
+                            a.role === "super-admin"
+                              ? "bg-[#96158F]/10 text-[#96158F] border-[#96158F]/20"
+                              : a.role === "admin"
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : "bg-gray-50 text-gray-700 border-gray-200"
+                          }`}
+                        >
+                          {a.role.replace("-", " ")}
+                        </span>
+                        {!a.isActive && (
+                          <span className="px-2.5 py-1 rounded-full text-[11px] font-medium border bg-red-50 text-red-600 border-red-200">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
           </div>
         );
 
@@ -1462,6 +1677,18 @@ const handleExportContributions = async () => {
     />
   );
 
+  const DeleteTransactionModal = () => (
+    <ConfirmModal
+      open={!!deleteTxModal}
+      title="Delete transaction"
+      message={`This will permanently delete the ${deleteTxModal?.label} transaction. This cannot be undone.`}
+      confirmLabel="Delete"
+      danger
+      onConfirm={handleDeleteTransaction}
+      onCancel={() => setDeleteTxModal(null)}
+    />
+  );
+
   const RoleModal = () => (
     <ConfirmModal
       open={!!roleModal}
@@ -1492,6 +1719,7 @@ const handleExportContributions = async () => {
       <RejectModal />
       <ApproveLoanModal />
       <DeleteUserModal />
+      <DeleteTransactionModal />
       <RoleModal />
 
       {/* Sidebar overlay (mobile) */}
